@@ -5,23 +5,37 @@
         <attr name="cornerRadius" format="dimension" />
         <attr name="tintColor" format="color" />
         <attr name="saturation" format="float" />
-        <attr name="brightness" format="float" />
+     
+        <attr name="contrast" format="float" />
+        <attr name="exposure" format="float" />
+        <attr name="gamma" format="float" />
+
+        <!-- Refraction & Dispersion -->
         <attr name="refractionIntensity" format="float" />
         <attr name="dispersionIntensity" format="float" />
-        <attr name="contrast" format="float" />
+        <attr name="vibrancy" format="float" />
+
+        <!-- Inner Shadow -->
         <attr name="innerShadowRadius" format="dimension" />
         <attr name="innerShadowColor" format="color" />
         <attr name="surfaceColor" format="color" />
         <attr name="hasDepthEffect" format="boolean" />
-        <attr name="highlightStyle" format="enum">
-            <enum name="touch" value="0" />
-            <enum name="ambient" value="1" />
-            <enum name="directional" value="2" />
+        <attr name="highlightStyle">
+            <enum name="NONE" value="0" />
+            <enum name="HARD" value="1" />
+            <enum name="SOFT" value="2" />
+            <enum name="TOUCH" value="3" />
         </attr>
         <attr name="highlightAngle" format="float" />
         <attr name="outerShadowRadius" format="dimension" />
         <attr name="outerShadowColor" format="color" />
         <attr name="outerShadowDx" format="dimension" />
         <attr name="outerShadowDy" format="dimension" />
+        <attr name="isTiltEnabled" format="boolean" />
+        <attr name="maxTiltAngle" format="float" />
+    </declare-styleable>
+
+    <declare-styleable name="LiquidSlider">
+        <attr name="value" format="float" />
     </declare-styleable>
 </resources>

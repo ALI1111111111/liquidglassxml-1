@@ -11,7 +11,7 @@ import kotlin.math.sin
 class HighlightEffect : Effect {
 
     enum class Style {
-        TOUCH, AMBIENT, DIRECTIONAL
+        TOUCH, AMBIENT, DIRECTIONAL, NONE
     }
 
     var style: Style = Style.TOUCH
@@ -21,6 +21,8 @@ class HighlightEffect : Effect {
     var highlightAngle: Float = 45f // Angle for DIRECTIONAL style
 
     override fun apply(bitmap: Bitmap): Bitmap {
+        if (style == Style.NONE) return bitmap
+
         val result = bitmap.copy(bitmap.config, true)
         val canvas = Canvas(result)
 
@@ -28,6 +30,7 @@ class HighlightEffect : Effect {
             Style.TOUCH -> drawTouchHighlight(canvas)
             Style.AMBIENT -> drawAmbientHighlight(canvas)
             Style.DIRECTIONAL -> drawDirectionalHighlight(canvas)
+            Style.NONE -> { /* Do nothing */ }
         }
 
         return result

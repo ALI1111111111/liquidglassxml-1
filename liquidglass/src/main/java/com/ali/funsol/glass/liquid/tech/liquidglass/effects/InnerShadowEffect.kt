@@ -17,7 +17,7 @@ class InnerShadowEffect : Effect {
 
     override fun apply(bitmap: Bitmap): Bitmap {
         val currentPath = path ?: return bitmap
-        if (radius <= 0) return bitmap
+        if (radius <= 0 || Color.alpha(color) == 0) return bitmap
 
         val result = bitmap.copy(bitmap.config, true)
         val canvas = Canvas(result)

@@ -19,23 +19,30 @@ class OuterShadowEffect : Effect {
     var dy: Float = 0f
 
     override fun apply(bitmap: Bitmap): Bitmap {
-        // This effect is handled differently, in a separate drawing pass.
-        // This apply method will not be called.
-        return bitmap
-    }
+        val currentPath = path ?: return bitmap
+        if (radius <= 0 && dx == 0f && dy == 0f) return bitmap
 
-    fun draw(canvas: Canvas) {
-        val currentPath = path ?: return
-        if (radius <= 0) return
+        // Create a new bitmap that is large enough to contain the shadow
+        val shadowBitmap = Bitmap.createBitmap(
+            (bitmap.width + radius * 2 + dx.let { if (it > 0) it else -it }).toInt(),
+            (bitmap.height + radius * 2 + dy.let { if (it > 0) it else -it }).toInt(),
+            Bitmap.Config.ARGB_8888
+        )
+        val shadowCanvas = Canvas(shadowBitmap)
 
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = this@OuterShadowEffect.color
             maskFilter = BlurMaskFilter(radius, BlurMaskFilter.Blur.NORMAL)
         }
 
-        canvas.save()
-        canvas.translate(dx, dy)
-        canvas.drawPath(currentPath, paint)
-        canvas.restore()
+        shadowCanvas.save()
+        shadowCanvas.translate(radius + dx, radius + dy)
+        shadowCanvas.drawPath(currentPath, paint)
+        shadowCanvas.restore()
+
+        // Draw the original bitmap on top of the shadow
+        shadowCanvas.drawBitmap(bitmap, radius, radius, null)
+
+        return shadowBitmap
     }
 }

@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.PointF
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.ViewConfiguration
 import android.view.animation.DecelerateInterpolator
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.FloatPropertyCompat
@@ -25,13 +26,13 @@ class GlassButton @JvmOverloads constructor(
     private val initialBrightness = brightness
     private var dragStartX = 0f
     private var dragStartY = 0f
+    private val touchSlop: Int
 
     // --- Custom FloatProperties for animating our layer properties ---
     private val layerTranslationXProperty = object : FloatPropertyCompat<GlassButton>("layerTranslationX") {
         override fun getValue(view: GlassButton): Float = view.layerTranslationX
         override fun setValue(view: GlassButton, value: Float) {
             view.layerTranslationX = value
-            view.invalidate() // A redraw is needed to apply the matrix change
         }
     }
 
@@ -39,7 +40,6 @@ class GlassButton @JvmOverloads constructor(
         override fun getValue(view: GlassButton): Float = view.layerTranslationY
         override fun setValue(view: GlassButton, value: Float) {
             view.layerTranslationY = value
-            view.invalidate()
         }
     }
 
@@ -47,7 +47,6 @@ class GlassButton @JvmOverloads constructor(
         override fun getValue(view: GlassButton): Float = view.layerScaleX
         override fun setValue(view: GlassButton, value: Float) {
             view.layerScaleX = value
-            view.invalidate()
         }
     }
 
@@ -55,7 +54,13 @@ class GlassButton @JvmOverloads constructor(
         override fun getValue(view: GlassButton): Float = view.layerScaleY
         override fun setValue(view: GlassButton, value: Float) {
             view.layerScaleY = value
-            view.invalidate()
+        }
+    }
+
+    private val brightnessProperty = object : FloatPropertyCompat<GlassButton>("brightness") {
+        override fun getValue(view: GlassButton): Float = view.brightness
+        override fun setValue(view: GlassButton, value: Float) {
+            view.brightness = value
         }
     }
 
@@ -90,8 +95,18 @@ class GlassButton @JvmOverloads constructor(
         SpringAnimation(this, layerScaleYProperty).setSpring(scaleSpringForce)
     }
 
+    private val springBrightness: SpringAnimation by lazy {
+        SpringAnimation(this, brightnessProperty).setSpring(
+            SpringForce(initialBrightness).apply {
+                stiffness = SpringForce.STIFFNESS_LOW
+                dampingRatio = SpringForce.DAMPING_RATIO_NO_BOUNCY
+            }
+        )
+    }
+
     init {
         isClickable = true
+        touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -107,10 +122,11 @@ class GlassButton @JvmOverloads constructor(
                 springY.cancel()
                 springScaleX.cancel()
                 springScaleY.cancel()
+                springBrightness.cancel()
 
                 springScaleX.animateToFinalPosition(1.1f)
                 springScaleY.animateToFinalPosition(1.1f)
-                animateBrightness(initialBrightness, initialBrightness + 0.2f)
+                springBrightness.animateToFinalPosition(initialBrightness + 0.2f)
                 setTouchHighlight(PointF(event.x, event.y), width.toFloat())
                 return true
             }
@@ -126,12 +142,15 @@ class GlassButton @JvmOverloads constructor(
                 springY.start()
                 springScaleX.start()
                 springScaleY.start()
+                springBrightness.start()
 
                 animateBrightness(initialBrightness + 0.2f, initialBrightness)
                 setTouchHighlight(PointF(-1f, -1f), 0f) // Hide highlight
 
                 if (event.action == MotionEvent.ACTION_UP) {
-                    if (Math.abs(layerTranslationX) < 5 && Math.abs(layerTranslationY) < 5) {
+                    val dx = currentX - dragStartX
+                    val dy = currentY - dragStartY
+                    if (dx * dx + dy * dy < touchSlop * touchSlop) {
                         performClick()
                     }
                 }

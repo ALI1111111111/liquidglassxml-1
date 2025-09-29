@@ -1,9 +1,11 @@
 package com.ali.funsol.glass.liquid.tech.liquidglass
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.os.Build
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import androidx.core.graphics.withSave
 import com.ali.funsol.glass.liquid.tech.liquidglass.effects.BlurEffect
@@ -14,6 +16,7 @@ import com.ali.funsol.glass.liquid.tech.liquidglass.effects.HighlightEffect
 import com.ali.funsol.glass.liquid.tech.liquidglass.effects.InnerShadowEffect
 import com.ali.funsol.glass.liquid.tech.liquidglass.effects.OuterShadowEffect
 import com.ali.funsol.glass.liquid.tech.liquidglass.effects.RefractionEffect
+import com.ali.funsol.glass.liquid.tech.liquidglass.effects.GammaEffect
 
 /**
  * A custom [View] that applies a "liquid glass" effect to the content behind it.
@@ -35,6 +38,7 @@ class GlassView @JvmOverloads constructor(
     private val highlightEffect = HighlightEffect()
     private val innerShadowEffect = InnerShadowEffect()
     private val outerShadowEffect = OuterShadowEffect()
+    private val gammaEffect = GammaEffect(context)
 
     /** The corner radius of the view, used for clipping. */
     var cornerRadius: Float = 0f
@@ -42,6 +46,9 @@ class GlassView @JvmOverloads constructor(
     private var surfaceColor: Int = Color.TRANSPARENT
 
     private var cachedBackground: Bitmap? = null
+    private var cachedOutput: Bitmap? = null
+    private var contentBitmap: Bitmap? = null
+    private var offscreenBitmap: Bitmap? = null
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val surfacePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val camera = Camera()
@@ -55,6 +62,31 @@ class GlassView @JvmOverloads constructor(
     var layerRotationX: Float = 0f
     var layerRotationY: Float = 0f
 
+    /** Determines if the view should tilt in response to touch events. */
+    var isTiltEnabled: Boolean = false
+
+    /** The maximum angle, in degrees, that the view will tilt. */
+    var maxTiltAngle: Float = 15f
+
+    /** A custom drawing lambda that is invoked before any glass effects are drawn. */
+    var onDrawBehind: ((canvas: Canvas) -> Unit)? = null
+
+    /** A custom drawing lambda that allows for custom drawing of the backdrop bitmap. */
+    var onDrawBackdrop: ((canvas: Canvas, backdrop: Bitmap) -> Unit)? = null
+
+    /** A custom drawing lambda that is invoked after all glass effects and surfaces are drawn. */
+    var onDrawFront: ((canvas: Canvas) -> Unit)? = null
+
+    /** A custom touch event listener for advanced interactions. */
+    var onTouchEvent: ((view: GlassView, event: MotionEvent) -> Boolean)? = null
+
+    /** The final rendered output of this GlassView, can be used by another GlassView. */
+    val outputBitmap: Bitmap?
+        get() = cachedOutput
+
+    /** An external bitmap to be drawn behind the main content, for glass-on-glass effects. */
+    var inputBackdrop: Bitmap? = null
+
     /** Public property to control the blur radius at runtime. */
     var blurRadius: Float
         get() = blurEffect.radius
@@ -67,6 +99,14 @@ class GlassView @JvmOverloads constructor(
                     setRenderEffect(null)
                 }
             }
+            invalidate()
+        }
+
+    /** Public property to control the vibrancy at runtime. */
+    var vibrancy: Float
+        get() = colorEffect.vibrancy
+        set(value) {
+            colorEffect.vibrancy = value
             invalidate()
         }
 
@@ -110,6 +150,22 @@ class GlassView @JvmOverloads constructor(
             invalidate()
         }
 
+    /** Public property to control the exposure at runtime. */
+    var exposure: Float
+        get() = colorEffect.exposure
+        set(value) {
+            colorEffect.exposure = value
+            invalidate()
+        }
+
+    /** Public property to control the gamma at runtime. */
+    var gamma: Float
+        get() = gammaEffect.power
+        set(value) {
+            gammaEffect.power = value
+            invalidate()
+        }
+
     init {
         if (attrs != null) {
             val a = context.obtainStyledAttributes(attrs, R.styleable.GlassView)
@@ -119,8 +175,11 @@ class GlassView @JvmOverloads constructor(
             saturation = a.getFloat(R.styleable.GlassView_saturation, saturation)
             brightness = a.getFloat(R.styleable.GlassView_brightness, brightness)
             contrast = a.getFloat(R.styleable.GlassView_contrast, contrast)
+            exposure = a.getFloat(R.styleable.GlassView_exposure, exposure)
+            gamma = a.getFloat(R.styleable.GlassView_gamma, gamma)
             refractionIntensity = a.getFloat(R.styleable.GlassView_refractionIntensity, refractionIntensity)
             dispersionIntensity = a.getFloat(R.styleable.GlassView_dispersionIntensity, dispersionIntensity)
+            vibrancy = a.getFloat(R.styleable.GlassView_vibrancy, vibrancy)
             innerShadowEffect.radius = a.getDimension(R.styleable.GlassView_innerShadowRadius, innerShadowEffect.radius)
             innerShadowEffect.color = a.getColor(R.styleable.GlassView_innerShadowColor, innerShadowEffect.color)
             surfaceColor = a.getColor(R.styleable.GlassView_surfaceColor, surfaceColor)
@@ -132,6 +191,8 @@ class GlassView @JvmOverloads constructor(
             outerShadowEffect.color = a.getColor(R.styleable.GlassView_outerShadowColor, outerShadowEffect.color)
             outerShadowEffect.dx = a.getDimension(R.styleable.GlassView_outerShadowDx, outerShadowEffect.dx)
             outerShadowEffect.dy = a.getDimension(R.styleable.GlassView_outerShadowDy, outerShadowEffect.dy)
+            isTiltEnabled = a.getBoolean(R.styleable.GlassView_isTiltEnabled, isTiltEnabled)
+            maxTiltAngle = a.getFloat(R.styleable.GlassView_maxTiltAngle, maxTiltAngle)
             a.recycle()
         }
 
@@ -142,9 +203,10 @@ class GlassView @JvmOverloads constructor(
         effects.add(refractionEffect)
         effects.add(dispersionEffect)
         effects.add(colorEffect)
+        effects.add(gammaEffect)
         effects.add(highlightEffect)
         effects.add(innerShadowEffect)
-        // Outer shadow is not in the main effects list as it's drawn separately
+        effects.add(outerShadowEffect)
     }
 
     override fun onDetachedFromWindow() {
@@ -153,6 +215,7 @@ class GlassView @JvmOverloads constructor(
         blurEffect.destroy()
         refractionEffect.destroy()
         dispersionEffect.destroy()
+        gammaEffect.destroy()
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
@@ -182,9 +245,45 @@ class GlassView @JvmOverloads constructor(
         invalidate()
     }
 
+    override fun dispatchDraw(canvas: Canvas) {
+        if (width > 0 && height > 0) {
+            contentBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val contentCanvas = Canvas(contentBitmap!!)
+            super.dispatchDraw(contentCanvas)
+        } else {
+            super.dispatchDraw(canvas)
+        }
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
+        if (width <= 0 || height <= 0) return
+
+        // Ensure offscreen bitmap is the correct size
+        if (offscreenBitmap == null || offscreenBitmap!!.width != width || offscreenBitmap!!.height != height) {
+            offscreenBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        }
+
+        val offscreenCanvas = Canvas(offscreenBitmap!!)
+        renderOutput(offscreenCanvas)
+        canvas.drawBitmap(offscreenBitmap!!, 0f, 0f, paint)
+    }
+
+    private fun renderOutput(canvas: Canvas) {
+        // This method is a copy of onDraw, but without the final output caching step
+        // to prevent infinite recursion.
+
+        // --- Custom Drawing Pass (Behind) ---
+        onDrawBehind?.invoke(canvas)
+
         var bg = cachedBackground ?: return
+
+        // Draw input backdrop behind the main background
+        inputBackdrop?.let {
+            val tempCanvas = Canvas(bg)
+            tempCanvas.drawBitmap(it, 0f, 0f, null)
+        }
 
         val path = clipPath ?: Path().apply {
             addRoundRect(
@@ -198,10 +297,7 @@ class GlassView @JvmOverloads constructor(
 
         // --- Drawing Passes ---
 
-        // 1. Draw Outer Shadow (Behind)
-        outerShadowEffect.draw(canvas)
-
-        // 2. Process and Draw Main Effects Bitmap
+        // 1. Process and Draw Main Effects Bitmap
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             for (effect in effects) {
                 bg = effect.apply(bg)
@@ -234,7 +330,11 @@ class GlassView @JvmOverloads constructor(
             canvas.rotate(layerRotation, centerX, centerY)
             canvas.scale(layerScaleX, layerScaleY, centerX, centerY)
 
-            drawBitmap(bg, 0f, 0f, paint)
+            if (onDrawBackdrop != null) {
+                onDrawBackdrop?.invoke(canvas, bg)
+            } else {
+                drawBitmap(bg, 0f, 0f, paint)
+            }
 
             // 3. Draw Surface Color Layer (On Top)
             if (surfaceColor != Color.TRANSPARENT) {
@@ -242,6 +342,18 @@ class GlassView @JvmOverloads constructor(
                 drawRect(0f, 0f, width.toFloat(), height.toFloat(), surfacePaint)
             }
         }
+
+        // 4. Apply Content Effects and Draw
+        contentBitmap?.let {
+            var content = it
+            for (effect in contentEffects) {
+                content = effect.apply(content)
+            }
+            canvas.drawBitmap(content, 0f, 0f, paint)
+        }
+
+        // --- Custom Drawing Pass (Front) ---
+        onDrawFront?.invoke(canvas)
     }
 
     /**
@@ -266,4 +378,53 @@ class GlassView @JvmOverloads constructor(
         this.clipPath = path
         invalidate()
     }
-}
+
+    /**
+     * Adds an effect to be applied to the content of this view.
+     *
+     * @param effect The effect to add.
+     */
+    fun addContentEffect(effect: Effect) {
+        contentEffects.add(effect)
+        invalidate()
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        // Custom listener takes precedence
+        if (onTouchEvent?.invoke(this, event) == true) {
+            return true
+        }
+
+        if (isTiltEnabled) {
+            when (event.action) {
+                MotionEvent.ACTION_MOVE -> {
+                    val centerX = width / 2f
+                    val centerY = height / 2f
+                    // Calculate tilt based on touch position relative to the center
+                    val tiltY = ((event.x - centerX) / centerX) * maxTiltAngle
+                    val tiltX = -((event.y - centerY) / centerY) * maxTiltAngle // Invert Y for natural feel
+                    this.layerRotationY = tiltY
+                    this.layerRotationX = tiltX
+                    invalidate()
+                    return true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    // Animate back to neutral position
+                    val currentRotationX = this.layerRotationX
+                    val currentRotationY = this.layerRotationY
+                    val animator = ValueAnimator.ofFloat(1f, 0f).apply {
+                        duration = 300
+                        addUpdateListener { animation ->
+                            val fraction = animation.animatedValue as Float
+                            layerRotationX = currentRotationX * fraction
+                            layerRotationY = currentRotationY * fraction
+                            invalidate()
+                        }
+                    }
+                    animator.start()
+                    return true
+                }
+            }
+        }
+        return super.onTouchEvent(event)
+    }
