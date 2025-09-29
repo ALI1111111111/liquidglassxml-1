@@ -27,7 +27,8 @@ android {
         }
     }
     buildFeatures {
-        dataBinding= true
+        dataBinding = true
+        renderScript = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -39,9 +40,9 @@ android {
 }
 
 dependencies {
-
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
+    implementation(project(":liquidglass"))
+    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)

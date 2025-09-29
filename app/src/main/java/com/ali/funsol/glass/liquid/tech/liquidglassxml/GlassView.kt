@@ -7,6 +7,10 @@ import android.graphics.Shader
 import android.os.Build
 import android.util.AttributeSet
 import android.view.View
+import android.renderscript.Allocation
+import android.renderscript.Element
+import android.renderscript.RenderScript
+import android.renderscript.ScriptIntrinsicBlur
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.withSave
@@ -26,6 +30,23 @@ class GlassView @JvmOverloads constructor(
     private var cachedBackground: Bitmap? = null
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val tintPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private var renderScript: RenderScript? = null
+
+    init {
+        if (attrs != null) {
+            val a = context.obtainStyledAttributes(attrs, R.styleable.GlassView)
+            blurRadius = a.getFloat(R.styleable.GlassView_blurRadius, blurRadius)
+            cornerRadius = a.getDimension(R.style.GlassView_cornerRadius, cornerRadius)
+            tintColor = a.getColor(R.styleable.GlassView_tintColor, tintColor)
+            saturation = a.getFloat(R.styleable.GlassView_saturation, saturation)
+            brightness = a.getFloat(R.styleable.GlassView_brightness, brightness)
+            a.recycle()
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            renderScript = RenderScript.create(context)
+        }
+    }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -52,7 +73,11 @@ class GlassView @JvmOverloads constructor(
         val safeWidth = width.coerceAtMost(bitmap.width - x)
         val safeHeight = height.coerceAtMost(bitmap.height - y)
 
-        cachedBackground = Bitmap.createBitmap(bitmap, x, y, safeWidth, safeHeight)
+        if (safeWidth > 0 && safeHeight > 0) {
+            cachedBackground = Bitmap.createBitmap(bitmap, x, y, safeWidth, safeHeight)
+        } else {
+            cachedBackground = null
+        }
         invalidate()
     }
 
@@ -61,11 +86,7 @@ class GlassView @JvmOverloads constructor(
         val bg = cachedBackground ?: return
 
         // Step 1: Apply blur or fallback
-        val blurred = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            applyBlur(bg)
-        } else {
-            bg // fallback (no blur yet)
-        }
+        val blurred = applyBlur(bg)
 
         // Step 2: Apply saturation/brightness
         val adjusted = applyColorAdjustments(blurred)
@@ -91,24 +112,37 @@ class GlassView @JvmOverloads constructor(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun applyBlur(src: Bitmap): Bitmap {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // On Android 12+, apply RenderEffect directly on this view
-            setRenderEffect(
-                RenderEffect.createBlurEffect(blurRadius, blurRadius, Shader.TileMode.CLAMP)
-            )
-            return src // no need to create new bitmap, GPU handles it
+            // This is not the right way to use RenderEffect.
+            // It should be applied to the view itself, not used to create a bitmap.
+            // For simplicity, we'll use the RenderScript method for all versions for now.
+            return rsBlur(src)
         } else {
-            // Fallback: return original until we implement stack blur
-            return src
+            return rsBlur(src)
         }
     }
 
+    private fun rsBlur(src: Bitmap): Bitmap {
+        val rs = renderScript ?: return src
+        val output = Bitmap.createBitmap(src.width, src.height, src.config)
+        val inputAllocation = Allocation.createFromBitmap(rs, src)
+        val outputAllocation = Allocation.createFromBitmap(rs, output)
+
+        val blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs))
+        blurScript.setRadius(blurRadius.coerceIn(0.1f, 25f))
+        blurScript.setInput(inputAllocation)
+        blurScript.forEach(outputAllocation)
+
+        outputAllocation.copyTo(output)
+        return output
+    }
 
     private fun applyColorAdjustments(src: Bitmap): Bitmap {
-        val cm = ColorMatrix()
-        cm.setSaturation(saturation)
+        val bitmap = src.copy(src.config, true)
+        val canvas = Canvas(bitmap)
+        val colorMatrix = ColorMatrix()
+        colorMatrix.setSaturation(saturation)
 
         val brightnessMatrix = ColorMatrix(
             floatArrayOf(
@@ -118,12 +152,18 @@ class GlassView @JvmOverloads constructor(
                 0f, 0f, 0f, 1f, 0f
             )
         )
-        cm.postConcat(brightnessMatrix)
+        colorMatrix.postConcat(brightnessMatrix)
 
-        val paint = Paint().apply { colorFilter = ColorMatrixColorFilter(cm) }
-        val output = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        canvas.drawBitmap(src, 0f, 0f, paint)
-        return output
+        paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
+        paint.colorFilter = null // reset
+        return bitmap
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun applyBlurS(src: Bitmap): Bitmap {
+        // This is a placeholder for a correct Android 12+ implementation
+        // For now, we are using RenderScript for all versions.
+        return src
     }
 }

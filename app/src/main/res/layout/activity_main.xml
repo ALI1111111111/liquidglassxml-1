@@ -1,28 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <LinearLayout
-        android:id="@+id/rootLayout"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:background="@drawable/ic_launcher_background">
+        android:layout_height="match_parent">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/rootLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Behind Glass Effect"
-            android:textSize="24sp"
-            android:textColor="@android:color/black" />
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@drawable/gradient_background">
 
-        <com.ali.funsol.glass.liquid.tech.liquidglassxml.GlassView
-            android:id="@+id/glassView"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
-            android:layout_marginTop="24dp"
-            android:background="@android:color/transparent"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Live Demo"
+                android:textSize="24sp"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="16dp"/>
 
-    </LinearLayout>
+            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+                android:id="@+id/glassView"
+                android:layout_width="300dp"
+                android:layout_height="200dp"
+                app:cornerRadius="20dp"
+                app:blurRadius="15"
+                app:tintColor="#80FFFFFF"
+                app:saturation="1.2"
+                app:brightness="1.1"
+                app:refractionIntensity="0.03"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Blur Radius"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="16dp"/>
+            <SeekBar
+                android:id="@+id/blurSeekBar"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:max="25"
+                android:progress="15"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Saturation"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="8dp"/>
+            <SeekBar
+                android:id="@+id/saturationSeekBar"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:max="200"
+                android:progress="120"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Brightness"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="8dp"/>
+            <SeekBar
+                android:id="@+id/brightnessSeekBar"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:max="200"
+                android:progress="110"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Refraction Intensity"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="8dp"/>
+            <SeekBar
+                android:id="@+id/refractionSeekBar"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="30"/>
+
+            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassButton
+                android:id="@+id/glassButton"
+                android:layout_width="200dp"
+                android:layout_height="60dp"
+                android:layout_marginTop="24dp"
+                app:cornerRadius="30dp"
+                app:blurRadius="10"
+                app:tintColor="#80FFFFFF">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Interactive Button"
+                    android:textColor="@android:color/white"
+                    android:layout_gravity="center"/>
+            </com.ali.funsol.glass.liquid.tech.liquidglass.GlassButton>
+
+            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+                android:id="@+id/circleGlassView"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="24dp"
+                app:blurRadius="20"
+                app:tintColor="#40FFFFFF"/>
+
+        </LinearLayout>
+    </ScrollView>
 </layout>

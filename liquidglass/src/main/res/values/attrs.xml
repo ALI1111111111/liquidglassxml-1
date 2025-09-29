@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GlassView">
+        <attr name="blurRadius" format="float" />
+        <attr name="cornerRadius" format="dimension" />
+        <attr name="tintColor" format="color" />
+        <attr name="saturation" format="float" />
+        <attr name="brightness" format="float" />
+        <attr name="refractionIntensity" format="float" />
+        <attr name="dispersionIntensity" format="float" />
+        <attr name="contrast" format="float" />
+        <attr name="innerShadowRadius" format="dimension" />
+        <attr name="innerShadowColor" format="color" />
+        <attr name="surfaceColor" format="color" />
+        <attr name="hasDepthEffect" format="boolean" />
+        <attr name="highlightStyle" format="enum">
+            <enum name="touch" value="0" />
+            <enum name="ambient" value="1" />
+            <enum name="directional" value="2" />
+        </attr>
+        <attr name="highlightAngle" format="float" />
+        <attr name="outerShadowRadius" format="dimension" />
+        <attr name="outerShadowColor" format="color" />
+        <attr name="outerShadowDx" format="dimension" />
+        <attr name="outerShadowDy" format="dimension" />
+    </declare-styleable>
+</resources>

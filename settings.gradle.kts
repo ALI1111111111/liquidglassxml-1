@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "liquidglassxml"
 include(":app")
- 
+include(":liquidglass")
