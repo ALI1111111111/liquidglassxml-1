@@ -19,6 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "liquidglassxml"
+rootProject.name = "LiquidGlassXml"
 include(":app")
 include(":liquidglass")
+include(":catalog")

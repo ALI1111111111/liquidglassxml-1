@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.ali.funsol.glass.liquid.tech.catalog.HomeFragment"
+        android:label="LiquidGlass Catalog"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_homeFragment_to_buttonsFragment"
+            app:destination="@id/buttonsFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_sliderFragment"
+            app:destination="@id/sliderFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_bottomTabsFragment"
+            app:destination="@id/bottomTabsFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_lockScreenFragment"
+            app:destination="@id/lockScreenFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_controlCenterFragment"
+            app:destination="@id/controlCenterFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_magnifierFragment"
+            app:destination="@id/magnifierFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_glassPlaygroundFragment"
+            app:destination="@id/glassPlaygroundFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_scrollContainerFragment"
+            app:destination="@id/scrollContainerFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/buttonsFragment"
+        android:name="com.ali.funsol.glass.liquid.tech.catalog.ButtonsFragment"
+        android:label="Buttons Demo"
+        tools:layout="@layout/fragment_buttons" />
+    <fragment
+        android:id="@+id/sliderFragment"
+        android:name="com.ali.funsol.glass.liquid.tech.catalog.SliderFragment"
+        android:label="Slider Demo"
+        tools:layout="@layout/fragment_slider" />
+    <fragment
+        android:id="@+id/bottomTabsFragment"
+        android:name="com.ali.funsol.glass.liquid.tech.catalog.BottomTabsFragment"
+        android:label="Bottom Tabs Demo"
+        tools:layout="@layout/fragment_bottom_tabs" />
+    <fragment
+        android:id="@+id/lockScreenFragment"
+        android:name="com.ali.funsol.glass.liquid.tech.catalog.LockScreenFragment"
+        android:label="Lock Screen Demo"
+        tools:layout="@layout/fragment_lock_screen" />
+    <fragment
+        android:id="@+id/controlCenterFragment"
+        android:name="com.ali.funsol.glass.liquid.tech.catalog.ControlCenterFragment"
+        android:label="Control Center Demo"
+        tools:layout="@layout/fragment_control_center" />
+    <fragment
+        android:id="@+id/magnifierFragment"
+        android:name="com.ali.funsol.glass.liquid.tech.catalog.MagnifierFragment"
+        android:label="Magnifier Demo"
+        tools:layout="@layout/fragment_magnifier" />
+    <fragment
+        android:id="@+id/glassPlaygroundFragment"
+        android:name="com.ali.funsol.glass.liquid.tech.catalog.GlassPlaygroundFragment"
+        android:label="Glass Playground Demo"
+        tools:layout="@layout/fragment_glass_playground" />
+    <fragment
+        android:id="@+id/scrollContainerFragment"
+        android:name="com.ali.funsol.glass.liquid.tech.catalog.ScrollContainerFragment"
+        android:label="Scroll Container Demo"
+        tools:layout="@layout/fragment_scroll_container" />
+</navigation>
