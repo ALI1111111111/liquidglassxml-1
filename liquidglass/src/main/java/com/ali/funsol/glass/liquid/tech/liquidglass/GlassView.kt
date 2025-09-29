@@ -24,7 +24,7 @@ import com.ali.funsol.glass.liquid.tech.liquidglass.effects.GammaEffect
  *
  * This view can be configured via XML attributes or programmatically.
  */
-class GlassView @JvmOverloads constructor(
+open class GlassView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
@@ -39,6 +39,7 @@ class GlassView @JvmOverloads constructor(
     private val innerShadowEffect = InnerShadowEffect()
     private val outerShadowEffect = OuterShadowEffect()
     private val gammaEffect = GammaEffect(context)
+    private val contentEffects = mutableListOf<Effect>()
 
     /** The corner radius of the view, used for clipping. */
     var cornerRadius: Float = 0f
@@ -216,29 +217,32 @@ class GlassView @JvmOverloads constructor(
         refractionEffect.destroy()
         dispersionEffect.destroy()
         gammaEffect.destroy()
+        contentEffects.clear()
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        post { captureBackground() }
+        if (isAttachedToWindow) {
+            post { captureBackground() }
+        }
     }
 
     private fun captureBackground() {
         val parentView = rootView ?: return
-        val bitmap = Bitmap.createBitmap(parentView.width, parentView.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        parentView.draw(canvas)
-
         val loc = IntArray(2)
         getLocationOnScreen(loc)
         val x = loc[0]
         val y = loc[1]
 
-        val safeWidth = width.coerceAtMost(bitmap.width - x)
-        val safeHeight = height.coerceAtMost(bitmap.height - y)
+        val safeWidth = width.coerceAtMost(parentView.width - x)
+        val safeHeight = height.coerceAtMost(parentView.height - y)
 
         if (safeWidth > 0 && safeHeight > 0) {
-            cachedBackground = Bitmap.createBitmap(bitmap, x, y, safeWidth, safeHeight)
+            val bitmap = Bitmap.createBitmap(safeWidth, safeHeight, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            canvas.translate(-x.toFloat(), -y.toFloat())
+            parentView.draw(canvas)
+            cachedBackground = bitmap
         } else {
             cachedBackground = null
         }
@@ -262,18 +266,16 @@ class GlassView @JvmOverloads constructor(
 
         // Ensure offscreen bitmap is the correct size
         if (offscreenBitmap == null || offscreenBitmap!!.width != width || offscreenBitmap!!.height != height) {
+            offscreenBitmap?.recycle()
             offscreenBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         }
 
         val offscreenCanvas = Canvas(offscreenBitmap!!)
-        renderOutput(offscreenCanvas)
+        render(offscreenCanvas)
         canvas.drawBitmap(offscreenBitmap!!, 0f, 0f, paint)
     }
 
-    private fun renderOutput(canvas: Canvas) {
-        // This method is a copy of onDraw, but without the final output caching step
-        // to prevent infinite recursion.
-
+    private fun render(canvas: Canvas) {
         // --- Custom Drawing Pass (Behind) ---
         onDrawBehind?.invoke(canvas)
 
@@ -380,6 +382,16 @@ class GlassView @JvmOverloads constructor(
     }
 
     /**
+     * Adds an effect to be applied to the background of this view.
+     *
+     * @param effect The effect to add.
+     */
+    fun addEffect(effect: Effect) {
+        effects.add(effect)
+        invalidate()
+    }
+
+    /**
      * Adds an effect to be applied to the content of this view.
      *
      * @param effect The effect to add.
@@ -428,3 +440,4 @@ class GlassView @JvmOverloads constructor(
         }
         return super.onTouchEvent(event)
     }
+}

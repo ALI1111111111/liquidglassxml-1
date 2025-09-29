@@ -15,7 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ScrollView
+    <com.ali.funsol.glass.liquid.tech.catalog.ParallaxScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -23,48 +23,67 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:padding="16dp">
 
-            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginBottom="16dp"
-                app:blurRadius="20"
-                app:cornerRadius="24dp" />
-
-            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginBottom="16dp"
-                app:blurRadius="20"
-                app:cornerRadius="24dp" />
-
-            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginBottom="16dp"
-                app:blurRadius="20"
-                app:cornerRadius="24dp" />
-
-            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginBottom="16dp"
-                app:blurRadius="20"
-                app:cornerRadius="24dp" />
-
-            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
-                android:layout_width="match_parent"
+            <com.ali.funsol.glass.liquid.tech.catalog.ParallaxGlassView
+                android:id="@+id/glass_view_1"
+                android:layout_width="0dp"
                 android:layout_height="150dp"
                 app:blurRadius="20"
-                app:cornerRadius="24dp" />
+                app:cornerRadius="24dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        </LinearLayout>
-    </ScrollView>
+            <com.ali.funsol.glass.liquid.tech.catalog.ParallaxGlassView
+                android:id="@+id/glass_view_2"
+                android:layout_width="0dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="16dp"
+                app:blurRadius="20"
+                app:cornerRadius="24dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/glass_view_1" />
+
+            <com.ali.funsol.glass.liquid.tech.catalog.ParallaxGlassView
+                android:id="@+id/glass_view_3"
+                android:layout_width="0dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="16dp"
+                app:blurRadius="20"
+                app:cornerRadius="24dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/glass_view_2" />
+
+            <com.ali.funsol.glass.liquid.tech.catalog.ParallaxGlassView
+                android:id="@+id/glass_view_4"
+                android:layout_width="0dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="16dp"
+                app:blurRadius="20"
+                app:cornerRadius="24dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/glass_view_3" />
+
+            <com.ali.funsol.glass.liquid.tech.catalog.ParallaxGlassView
+                android:id="@+id/glass_view_5"
+                android:layout_width="0dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="16dp"
+                app:blurRadius="20"
+                app:cornerRadius="24dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/glass_view_4" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.ali.funsol.glass.liquid.tech.catalog.ParallaxScrollView>
 
     <Button
         android:id="@+id/pick_image_button"

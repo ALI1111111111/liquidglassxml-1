@@ -2,36 +2,29 @@
 #pragma rs java_package_name(com.ali.funsol.glass.liquid.tech.liquidglass)
 #pragma rs_fp_relaxed
 
+#include "utils.rsh"
+
 rs_allocation in_allocation;
 float intensity;
 int width;
 int height;
-int has_depth_effect; // Use int as a bool (0 or 1)
+int has_depth_effect;
 
-uchar4 __attribute__((kernel)) refract(uchar4 in, uint32_t x, uint32_t y) {
-    float normalizedX = ((float)x / width) * 2.0 - 1.0; // -1.0 to 1.0
-    float normalizedY = ((float)y / height) * 2.0 - 1.0; // -1.0 to 1.0
+uchar4 __attribute__((kernel)) root(uint32_t x, uint32_t y) {
+    float2 uv = { (float)x / width, (float)y / height };
+    float2 centered_uv = uv * 2.0 - 1.0;
+    float dist = length(centered_uv);
+    float disp = smoothstep(0.0, 1.0, dist) * intensity;
 
-    // Calculate distance from the center
-    float dist = sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
-
-    // Create a radial, lens-like distortion that is strongest at the center
-    float strength = smoothstep(1.0, 0.0, dist); // Invert the distance
-
-    float offsetX = normalizedX * strength * intensity;
-    float offsetY = normalizedY * strength * intensity;
-
-    // Add a parallax shift if depth effect is enabled
-    if (has_depth_effect == 1) {
-        offsetX += normalizedX * 0.02; // Small constant shift for parallax
-        offsetY += normalizedY * 0.02;
+    if (has_depth_effect) {
+        disp *= (1.0 - uv.y);
     }
 
-    int newX = x - (int)(offsetX * width);
-    int newY = y - (int)(offsetY * height);
+    int2 offset = { (int)(centered_uv.x * disp * width), (int)(centered_uv.y * disp * height) };
 
-    newX = clamp(newX, 0, width - 1);
-    newY = clamp(newY, 0, height - 1);
+    // Clamp the coordinates to prevent out-of-bounds memory access
+    int newX = clamp((int)x + offset.x, 0, width - 1);
+    int newY = clamp((int)y + offset.y, 0, height - 1);
 
-    return rsGetElementAt_uchar4(in_allocation, newX, newY);
+    return rsGetElementAt_uchar4(in_allocation, (uint32_t)newX, (uint32_t)newY);
 }

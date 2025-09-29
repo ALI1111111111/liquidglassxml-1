@@ -25,17 +25,18 @@ class DispersionEffect(private val context: Context) : Effect {
         if (rs == null) {
             rs = RenderScript.create(context)
         }
-        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config)
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
         val inputAllocation = Allocation.createFromBitmap(rs, bitmap)
         val outputAllocation = Allocation.createFromBitmap(rs, output)
 
         val script = ScriptC_dispersion(rs)
-        script._in_allocation = inputAllocation
-        script._intensity = intensity.coerceIn(0f, 0.1f)
-        script._width = bitmap.width
-        script._height = bitmap.height
+        script.set_in_allocation(inputAllocation)
+        script.set_intensity(intensity.coerceIn(0f, 0.1f))
+        script.set_width(bitmap.width)
+        script.set_height(bitmap.height)
+        script.set_in_allocation(inputAllocation)
 
-        script.forEach_disperse(inputAllocation, outputAllocation)
+        script.forEach_root(outputAllocation)
 
         outputAllocation.copyTo(output)
         return output

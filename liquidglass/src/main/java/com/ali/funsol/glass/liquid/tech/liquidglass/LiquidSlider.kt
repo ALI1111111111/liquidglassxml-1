@@ -7,6 +7,8 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.VelocityTracker
+import android.widget.FrameLayout
+import android.widget.SeekBar
 import androidx.dynamicanimation.animation.FloatPropertyCompat
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
@@ -16,16 +18,12 @@ class LiquidSlider @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
-) : GlassView(context, attrs, defStyle) {
+) : FrameLayout(context, attrs, defStyle) {
 
-    var value: Float = 0.5f
-        set(value) {
-            field = value.coerceIn(0f, 1f)
-            onValueChangedListener?.onValueChanged(field)
-            invalidate()
-        }
+    private val glassView: GlassView
+    private val seekBar: SeekBar
 
-    var onValueChangedListener: OnValueChangedListener? = null
+    var onValueChanged: ((Float) -> Unit)? = null
 
     private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.argb(100, 255, 255, 255)
@@ -35,7 +33,6 @@ class LiquidSlider @JvmOverloads constructor(
 
     private var trackY = 0f
     private var velocityTracker: VelocityTracker? = null
-    private val thumbView: GlassView
 
     // --- Physics-based Animations ---
     private val scaleXProperty = object : FloatPropertyCompat<GlassView>("layerScaleX") {
@@ -53,7 +50,7 @@ class LiquidSlider @JvmOverloads constructor(
     }
 
     private val springScaleX: SpringAnimation by lazy {
-        SpringAnimation(thumbView, scaleXProperty).setSpring(
+        SpringAnimation(glassView, scaleXProperty).setSpring(
             SpringForce(1f).apply {
                 stiffness = SpringForce.STIFFNESS_MEDIUM
                 dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY
@@ -62,7 +59,7 @@ class LiquidSlider @JvmOverloads constructor(
     }
 
     private val springScaleY: SpringAnimation by lazy {
-        SpringAnimation(thumbView, scaleYProperty).setSpring(
+        SpringAnimation(glassView, scaleYProperty).setSpring(
             SpringForce(1f).apply {
                 stiffness = SpringForce.STIFFNESS_MEDIUM
                 dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY
@@ -71,16 +68,31 @@ class LiquidSlider @JvmOverloads constructor(
     }
 
     init {
-        thumbView = GlassView(context).apply {
+        // Pass the AttributeSet down to the child GlassView
+        glassView = GlassView(context, attrs, defStyle).apply {
+            // Defaults can be set here, but XML attributes will override them
             cornerRadius = 999f
             blurRadius = 10f
             refractionIntensity = 0.05f
         }
-        addView(thumbView)
+        addView(glassView)
+
+        seekBar = SeekBar(context)
+        addView(seekBar)
+
+        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                onValueChanged?.invoke(progress.toFloat())
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
 
         if (attrs != null) {
             val a = context.obtainStyledAttributes(attrs, R.styleable.LiquidSlider)
-            value = a.getFloat(R.styleable.LiquidSlider_value, value)
+            seekBar.progress = a.getInt(R.styleable.LiquidSlider_value, seekBar.progress)
             a.recycle()
         }
     }
@@ -88,15 +100,15 @@ class LiquidSlider @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         trackY = h / 2f
-        thumbView.layoutParams.width = (h * 1.5f).toInt()
-        thumbView.layoutParams.height = h
-        thumbView.requestLayout()
+        glassView.layoutParams.width = (h * 1.5f).toInt()
+        glassView.layoutParams.height = h
+        glassView.requestLayout()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         // Draw track
-        canvas.drawLine(thumbView.width / 2f, trackY, width - thumbView.width / 2f, trackY, trackPaint)
+        canvas.drawLine(glassView.width / 2f, trackY, width - glassView.width / 2f, trackY, trackPaint)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -116,12 +128,12 @@ class LiquidSlider @JvmOverloads constructor(
                 springScaleX.animateToFinalPosition(scaleFactor)
                 springScaleY.animateToFinalPosition(1f / scaleFactor) // Squish effect
 
-                thumbView.refractionIntensity = (0.05f + (Math.abs(velocityX) / 5000f)).coerceAtMost(0.1f)
-                thumbView.blurRadius = (10f + (Math.abs(velocityX) / 100f)).coerceAtMost(25f)
+                glassView.refractionIntensity = (0.05f + (Math.abs(velocityX) / 5000f)).coerceAtMost(0.1f)
+                glassView.blurRadius = (10f + (Math.abs(velocityX) / 100f)).coerceAtMost(25f)
 
-                val newValue = (event.x - thumbView.width / 2f) / (width - thumbView.width)
-                this.value = newValue
-                thumbView.x = (width - thumbView.width) * this.value
+                val newValue = (event.x - glassView.width / 2f) / (width - glassView.width)
+                seekBar.progress = (newValue * seekBar.max).roundToInt()
+                glassView.x = (width - glassView.width) * newValue
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
@@ -133,9 +145,5 @@ class LiquidSlider @JvmOverloads constructor(
             }
         }
         return super.onTouchEvent(event)
-    }
-
-    interface OnValueChangedListener {
-        fun onValueChanged(value: Float)
     }
 }

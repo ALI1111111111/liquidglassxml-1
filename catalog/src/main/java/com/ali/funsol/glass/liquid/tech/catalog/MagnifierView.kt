@@ -13,34 +13,28 @@ class MagnifierView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : GlassView(context, attrs, defStyle) {
 
-    private val magnificationMatrix = Matrix()
-    private var magnificationScale = 1.5f
+    private val matrix = Matrix()
+    private var dragStartX = 0f
+    private var dragStartY = 0f
 
     init {
-        isClickable = true // To receive touch events
+        onDrawBackdrop = { canvas, backdrop ->
+            matrix.setScale(1.5f, 1.5f, width / 2f, height / 2f)
+            canvas.drawBitmap(backdrop, matrix, null)
+        }
     }
-
-    override fun onDrawBackdrop(canvas: Canvas, backdrop: android.graphics.Bitmap) {
-        magnificationMatrix.setScale(magnificationScale, magnificationScale, width / 2f, height / 2f)
-        canvas.matrix = magnificationMatrix
-        super.onDrawBackdrop(canvas, backdrop)
-    }
-
-    private var dX = 0f
-    private var dY = 0f
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                dX = x - event.rawX
-                dY = y - event.rawY
+                dragStartX = event.rawX - translationX
+                dragStartY = event.rawY - translationY
+                return true
             }
             MotionEvent.ACTION_MOVE -> {
-                animate()
-                    .x(event.rawX + dX)
-                    .y(event.rawY + dY)
-                    .setDuration(0)
-                    .start()
+                translationX = event.rawX - dragStartX
+                translationY = event.rawY - dragStartY
+                return true
             }
         }
         return super.onTouchEvent(event)

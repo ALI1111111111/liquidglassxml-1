@@ -15,7 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+    <com.ali.funsol.glass.liquid.tech.liquidglass.GlassContainer
         android:id="@+id/notification_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -61,7 +61,7 @@
                     android:textColor="@android:color/white" />
             </LinearLayout>
         </LinearLayout>
-    </com.ali.funsol.glass.liquid.tech.liquidglass.GlassView>
+    </com.ali.funsol.glass.liquid.tech.liquidglass.GlassContainer>
 
     <Button
         android:id="@+id/pick_image_button"

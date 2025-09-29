@@ -26,7 +26,7 @@ class OuterShadowEffect : Effect {
         val shadowBitmap = Bitmap.createBitmap(
             (bitmap.width + radius * 2 + dx.let { if (it > 0) it else -it }).toInt(),
             (bitmap.height + radius * 2 + dy.let { if (it > 0) it else -it }).toInt(),
-            Bitmap.Config.ARGB_8888
+            bitmap.config ?: Bitmap.Config.ARGB_8888
         )
         val shadowCanvas = Canvas(shadowBitmap)
 

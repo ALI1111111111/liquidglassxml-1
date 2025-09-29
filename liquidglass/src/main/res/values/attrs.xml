@@ -5,7 +5,7 @@
         <attr name="cornerRadius" format="dimension" />
         <attr name="tintColor" format="color" />
         <attr name="saturation" format="float" />
-     
+        <attr name="brightness" format="float" />
         <attr name="contrast" format="float" />
         <attr name="exposure" format="float" />
         <attr name="gamma" format="float" />
@@ -20,11 +20,10 @@
         <attr name="innerShadowColor" format="color" />
         <attr name="surfaceColor" format="color" />
         <attr name="hasDepthEffect" format="boolean" />
-        <attr name="highlightStyle">
-            <enum name="NONE" value="0" />
-            <enum name="HARD" value="1" />
-            <enum name="SOFT" value="2" />
-            <enum name="TOUCH" value="3" />
+        <attr name="highlightStyle" format="enum">
+            <enum name="none" value="0" />
+            <enum name="touch" value="1" />
+            <enum name="angular" value="2" />
         </attr>
         <attr name="highlightAngle" format="float" />
         <attr name="outerShadowRadius" format="dimension" />
@@ -35,7 +34,14 @@
         <attr name="maxTiltAngle" format="float" />
     </declare-styleable>
 
+    <declare-styleable name="GlassButton">
+        <attr name="android:text" />
+        <attr name="android:textColor" />
+    </declare-styleable>
+
     <declare-styleable name="LiquidSlider">
-        <attr name="value" format="float" />
+        <attr name="value" format="integer" />
+        <attr name="min_value" format="integer" />
+        <attr name="max_value" format="integer" />
     </declare-styleable>
 </resources>

@@ -27,18 +27,18 @@ class RefractionEffect(private val context: Context) : Effect {
         if (rs == null) {
             rs = RenderScript.create(context)
         }
-        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config)
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
         val inputAllocation = Allocation.createFromBitmap(rs, bitmap)
         val outputAllocation = Allocation.createFromBitmap(rs, output)
 
         val script = ScriptC_refraction(rs)
-        script._in_allocation = inputAllocation
-        script._intensity = intensity.coerceIn(0f, 0.1f) // Keep intensity in a reasonable range
-        script._width = bitmap.width
-        script._height = bitmap.height
-        script._has_depth_effect = if (hasDepthEffect) 1 else 0
+        script.set_in_allocation(inputAllocation)
+        script.set_intensity(intensity.coerceIn(0f, 0.1f)) // Keep intensity in a reasonable range
+        script.set_width(bitmap.width)
+        script.set_height(bitmap.height)
+        script.set_has_depth_effect(if (hasDepthEffect) 1 else 0)
 
-        script.forEach_refract(inputAllocation, outputAllocation)
+        script.forEach_root(outputAllocation)
 
         outputAllocation.copyTo(output)
         return output

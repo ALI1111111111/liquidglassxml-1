@@ -24,22 +24,32 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:blurRadius="20"
             app:cornerRadius="48dp" />
 
         <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:blurRadius="20"
             app:cornerRadius="48dp" />
 
         <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:blurRadius="20"
             app:cornerRadius="48dp" />
 
         <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:blurRadius="20"
             app:cornerRadius="48dp" />
 
         <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:blurRadius="20"
             app:cornerRadius="48dp" />
 

@@ -15,14 +15,43 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+        android:id="@+id/glass_view"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        app:blurRadius="20"
+        app:cornerRadius="24dp"
+        app:layout_constraintBottom_toTopOf="@id/slider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/blur_radius_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Blur Radius: 20"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/glass_view" />
+
     <com.ali.funsol.glass.liquid.tech.liquidglass.LiquidSlider
+        android:id="@+id/slider"
         android:layout_width="300dp"
         android:layout_height="60dp"
+        android:layout_marginTop="16dp"
         app:cornerRadius="30dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/blur_radius_label"
+        app:max_value="100"
+        app:min_value="0"
+        app:value="20" />
 
     <Button
         android:id="@+id/pick_image_button"

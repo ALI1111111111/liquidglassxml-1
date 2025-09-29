@@ -26,21 +26,12 @@ class BlurEffect(private val context: Context) : Effect {
 
     override fun apply(bitmap: Bitmap): Bitmap {
         if (radius <= 0) return bitmap
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // For now, we'll stick with RenderScript for consistency.
-            // A full RenderEffect implementation would require applying it to the View itself.
-            rsBlur(bitmap)
-        } else {
-            rsBlur(bitmap)
-        }
-    }
 
-    private fun rsBlur(src: Bitmap): Bitmap {
         if (rs == null) {
             rs = RenderScript.create(context)
         }
-        val output = Bitmap.createBitmap(src.width, src.height, src.config)
-        val inputAllocation = Allocation.createFromBitmap(rs, src)
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val inputAllocation = Allocation.createFromBitmap(rs, bitmap)
         val outputAllocation = Allocation.createFromBitmap(rs, output)
 
         val blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs))

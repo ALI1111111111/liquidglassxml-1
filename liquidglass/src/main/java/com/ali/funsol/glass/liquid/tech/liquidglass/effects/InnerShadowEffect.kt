@@ -16,18 +16,22 @@ class InnerShadowEffect : Effect {
     var color: Int = Color.argb(50, 0, 0, 0)
 
     override fun apply(bitmap: Bitmap): Bitmap {
-        val currentPath = path ?: return bitmap
-        if (radius <= 0 || Color.alpha(color) == 0) return bitmap
+        if (radius <= 0) return bitmap
 
-        val result = bitmap.copy(bitmap.config, true)
-        val canvas = Canvas(result)
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        canvas.drawBitmap(bitmap, 0f, 0f, null)
+
+        val currentPath = path ?: return output
+        if (Color.alpha(color) == 0) return output
+
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = this@InnerShadowEffect.color
             maskFilter = BlurMaskFilter(radius, BlurMaskFilter.Blur.NORMAL)
         }
 
         // Create a temporary bitmap for the shadow
-        val shadowBitmap = Bitmap.createBitmap(result.width, result.height, Bitmap.Config.ARGB_8888)
+        val shadowBitmap = Bitmap.createBitmap(output.width, output.height, Bitmap.Config.ARGB_8888)
         val shadowCanvas = Canvas(shadowBitmap)
 
         // Draw the shadow shape inverted
@@ -40,6 +44,6 @@ class InnerShadowEffect : Effect {
         // Draw the resulting inner shadow onto the original bitmap
         canvas.drawBitmap(shadowBitmap, 0f, 0f, null)
 
-        return result
+        return output
     }
 }

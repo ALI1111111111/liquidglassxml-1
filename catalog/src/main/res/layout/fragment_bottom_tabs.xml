@@ -16,11 +16,12 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.ali.funsol.glass.liquid.tech.liquidglass.LiquidBottomTabs
-        android:layout_width="match_parent"
+        android:id="@+id/bottom_tabs"
+        android:layout_width="0dp"
         android:layout_height="80dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -34,7 +35,7 @@
         <com.ali.funsol.glass.liquid.tech.liquidglass.LiquidBottomTab
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout__weight="1"
+            android:layout_weight="1"
             android:text="Favorites" />
 
         <com.ali.funsol.glass.liquid.tech.liquidglass.LiquidBottomTab
@@ -44,15 +45,5 @@
             android:text="Settings" />
 
     </com.ali.funsol.glass.liquid.tech.liquidglass.LiquidBottomTabs>
-
-    <Button
-        android:id="@+id/pick_image_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Pick Image"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

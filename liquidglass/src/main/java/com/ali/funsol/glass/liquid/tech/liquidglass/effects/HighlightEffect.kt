@@ -23,8 +23,9 @@ class HighlightEffect : Effect {
     override fun apply(bitmap: Bitmap): Bitmap {
         if (style == Style.NONE) return bitmap
 
-        val result = bitmap.copy(bitmap.config, true)
-        val canvas = Canvas(result)
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        canvas.drawBitmap(bitmap, 0f, 0f, null)
 
         when (style) {
             Style.TOUCH -> drawTouchHighlight(canvas)
@@ -33,7 +34,7 @@ class HighlightEffect : Effect {
             Style.NONE -> { /* Do nothing */ }
         }
 
-        return result
+        return output
     }
 
     private fun drawTouchHighlight(canvas: Canvas) {

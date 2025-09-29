@@ -1,6 +1,6 @@
 package com.ali.funsol.glass.liquid.tech.liquidglassxml
 
-
+import android.graphics.Color
 import android.graphics.Path
 import android.os.Build
 import android.os.Bundle
@@ -8,6 +8,7 @@ import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
 import com.ali.funsol.glass.liquid.tech.liquidglassxml.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -25,11 +26,9 @@ class MainActivity : AppCompatActivity() {
                 Toast.LENGTH_LONG
             ).show()
         } else {
-
             binding.glassView.apply {
                 blurRadius = 35f
                 cornerRadius = 32f
-                tintColor = 0x40FFFFFF // translucent white
                 saturation = 1.2f
                 brightness = 1.1f
             }
@@ -42,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupSeekBars() {
         binding.blurSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                binding.glassView.setBlurRadius(progress.toFloat())
+                binding.glassView.blurRadius = progress.toFloat()
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -51,7 +50,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.saturationSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                binding.glassView.setSaturation(progress / 100f)
+                binding.glassView.saturation = progress.toFloat() / 100f
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -60,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.brightnessSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                binding.glassView.setBrightness(progress / 100f)
+                binding.glassView.brightness = progress.toFloat() / 100f
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -69,7 +68,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.refractionSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                binding.glassView.setRefractionIntensity(progress / 1000f)
+                binding.glassView.refractionIntensity = progress.toFloat() / 1000f
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
