@@ -1,53 +1,82 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace = "com.ali.funsol.glass.liquid.tech.catalog"
+    namespace = "com.kyant.backdrop.catalog"
     compileSdk = 36
+    buildToolsVersion = "36.1.0"
 
     defaultConfig {
-        applicationId = "com.ali.funsol.glass.liquid.tech.catalog"
-        minSdk = 24
+        applicationId = "com.kyant.backdrop.catalog"
+        minSdk = 21
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionName = "1.0.0-dev"
+        androidResources.localeFilters += arrayOf("en")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            vcsInfo.include = false
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_21
+            freeCompilerArgs.addAll(
+                "-jvm-default=no-compatibility",
+                "-Xlambdas=class"
+            )
+        }
     }
     buildFeatures {
-        viewBinding = true
+        compose = true
+    }
+    packaging {
+        resources {
+            excludes += arrayOf(
+                "DebugProbesKt.bin",
+                "kotlin-tooling-metadata.json",
+                "kotlin/**",
+                "META-INF/*.version",
+                "META-INF/**/LICENSE.txt"
+            )
+        }
+        dex {
+            useLegacyPackaging = true
+        }
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+    lint {
+        checkReleaseBuilds = false
     }
 }
 
 dependencies {
-    implementation(project(":liquidglass"))
+    implementation(project(":backdrop"))
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.dynamicanimation)
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.material.ripple)
+    implementation("com.github.Kyant0:Capsule:2.1.0")
 }

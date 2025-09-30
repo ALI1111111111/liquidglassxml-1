@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GlassButton">
+        <attr name="android:text" />
+        <attr name="tint" format="color" />
+        <attr name="surfaceColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="GlassIconButton">
+        <attr name="android:src" />
+    </declare-styleable>
+
+    <declare-styleable name="GlassSlider">
+        <attr name="android:orientation" />
+    </declare-styleable>
+</resources>

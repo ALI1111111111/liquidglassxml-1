@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <com.kyant.backdrop.catalog.xml.components.GlassButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Transparent Glass Button" />
+
+    <com.kyant.backdrop.catalog.xml.components.GlassButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Tinted Glass Button"
+        app:tint="#FF0088FF" />
+
+    <com.kyant.backdrop.catalog.xml.components.GlassButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tinted Glass Button"
+        app:tint="#FFFF8D28" />
+
+</LinearLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="LiquidGlassView">
+        <attr name="cornerRadius" format="dimension" />
+        <attr name="topLeftCornerRadius" format="dimension" />
+        <attr name="topRightCornerRadius" format="dimension" />
+        <attr name="bottomLeftCornerRadius" format="dimension" />
+        <attr name="bottomRightCornerRadius" format="dimension" />
+        <attr name="refractionHeight" format="dimension" />
+        <attr name="refractionAmount" format="dimension" />
+        <attr name="depthEffect" format="float" />
+        <attr name="dispersionHeight" format="dimension" />
+        <attr name="dispersionAmount" format="dimension" />
+        <attr name="highlightAngle" format="float" />
+        <attr name="highlightFalloff" format="float" />
+
+        <attr name="shadowElevation" format="dimension" />
+        <attr name="shadowColor" format="color" />
+        <attr name="shadowOffsetX" format="dimension" />
+        <attr name="shadowOffsetY" format="dimension" />
+
+        <attr name="innerShadowElevation" format="dimension" />
+        <attr name="innerShadowColor" format="color" />
+        <attr name="innerShadowOffsetX" format="dimension" />
+        <attr name="innerShadowOffsetY" format="dimension" />
+
+        <attr name="layerId" format="string" />
+        <attr name="animationDuration" format="integer" />
+
+        <attr name="highlightType" format="enum">
+            <enum name="specular" value="0" />
+            <enum name="ambient" value="1" />
+        </attr>
+        <attr name="drawContent" format="boolean" />
+    </declare-styleable>
+</resources>

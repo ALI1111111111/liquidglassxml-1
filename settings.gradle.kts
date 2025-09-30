@@ -16,10 +16,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven("https://jitpack.io")
     }
 }
 
-rootProject.name = "LiquidGlassXml"
+rootProject.name = "Glass"
 include(":app")
-include(":liquidglass")
+include(":backdrop")
 include(":catalog")
+include(":backdrop-xml")
+include(":catalog-xml")
