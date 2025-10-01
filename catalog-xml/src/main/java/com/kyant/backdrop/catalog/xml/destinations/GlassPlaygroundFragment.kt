@@ -25,6 +25,18 @@ class GlassPlaygroundFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        
+        // Add fallback surface for API <31
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
+            binding.glassView.onDrawSurface = { canvas ->
+                val fallbackPaint = android.graphics.Paint().apply {
+                    color = 0xFFFFFFFF.toInt()
+                    alpha = 102 // 40% opacity
+                }
+                canvas.drawRect(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat(), fallbackPaint)
+            }
+        }
+        
         setupControls()
     }
 

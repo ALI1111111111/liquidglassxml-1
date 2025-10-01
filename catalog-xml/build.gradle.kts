@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.kyant.backdrop.catalog.xml"
-        minSdk = 33
+        minSdk = 23
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"

@@ -80,6 +80,77 @@ sealed class BackdropEffect {
             throw UnsupportedOperationException("Inverse is a canvas operation and does not create a RenderEffect.")
         }
     }
+
+    /**
+     * Color controls effect for adjusting brightness, contrast, and saturation.
+     * @property brightness Brightness adjustment (-1.0 to 1.0)
+     * @property contrast Contrast multiplier (0.0 to 2.0, default 1.0)
+     * @property saturation Saturation multiplier (0.0 to 2.0, default 1.0)
+     */
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    data class ColorControls(
+        val brightness: Float = 0f,
+        val contrast: Float = 1f,
+        val saturation: Float = 1f
+    ) : BackdropEffect() {
+        override fun createRenderEffect(): RenderEffect {
+            val shader = ShaderCache.get(ColorControlsShaderString)
+            shader.setFloatUniform("brightness", brightness)
+            shader.setFloatUniform("contrast", contrast)
+            shader.setFloatUniform("saturation", saturation)
+            return RenderEffect.createShaderEffect(shader)
+        }
+    }
+
+    /**
+     * Gamma adjustment effect.
+     * @property power Gamma power (0.5 = lighter, 2.0 = darker, 1.0 = no change)
+     */
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    data class GammaAdjustment(val power: Float) : BackdropEffect() {
+        override fun createRenderEffect(): RenderEffect {
+            val shader = ShaderCache.get(GammaAdjustmentShaderString)
+            shader.setFloatUniform("power", power)
+            return RenderEffect.createShaderEffect(shader)
+        }
+    }
+
+    /**
+     * Exposure adjustment effect.
+     * @property ev Exposure value adjustment (-2.0 to 2.0)
+     */
+    data class ExposureAdjustment(val ev: Float) : BackdropEffect() {
+        override fun createRenderEffect(): RenderEffect {
+            val scale = Math.pow(2.0, (ev / 2.2).toDouble()).toFloat()
+            val colorMatrix = android.graphics.ColorMatrix(
+                floatArrayOf(
+                    scale, 0f, 0f, 0f, 0f,
+                    0f, scale, 0f, 0f, 0f,
+                    0f, 0f, scale, 0f, 0f,
+                    0f, 0f, 0f, 1f, 0f
+                )
+            )
+            return RenderEffect.createColorFilterEffect(android.graphics.ColorMatrixColorFilter(colorMatrix))
+        }
+    }
+
+    /**
+     * Opacity effect.
+     * @property alpha Opacity level (0.0 to 1.0)
+     */
+    data class Opacity(val alpha: Float) : BackdropEffect() {
+        override fun createRenderEffect(): RenderEffect {
+            val colorMatrix = android.graphics.ColorMatrix(
+                floatArrayOf(
+                    1f, 0f, 0f, 0f, 0f,
+                    0f, 1f, 0f, 0f, 0f,
+                    0f, 0f, 1f, 0f, 0f,
+                    0f, 0f, 0f, alpha, 0f
+                )
+            )
+            return RenderEffect.createColorFilterEffect(android.graphics.ColorMatrixColorFilter(colorMatrix))
+        }
+    }
 }
 
 private val VibrantColorFilter = colorControlsColorFilter(saturation = 1.5f)

@@ -107,36 +107,51 @@ class ControlCenterFragment : Fragment(), SensorEventListener {
         val blurRadius = 24f * progress
         val refractionAmount = 48f * (1 - progress)
 
-        val effects = listOf(
-            BackdropEffect.Blur(blurRadius, blurRadius),
-            BackdropEffect.Vibrancy
-        )
+        // Apply parallax effect - with null safety
+        try {
+            binding.connectivityGroup?.translationY = translationY * 0.5f
+            binding.mediaGroup?.translationY = translationY * 0.5f
+            binding.slidersGroup?.translationY = translationY * 0.8f
+            binding.buttonsGroup?.translationY = translationY * 0.8f
+        } catch (e: Exception) {
+            // Layout might not have all views
+            e.printStackTrace()
+        }
 
-        // Apply parallax effect
-        binding.connectivityGroup.translationY = translationY * 0.5f
-        binding.mediaGroup.translationY = translationY * 0.5f
-        binding.slidersGroup.translationY = translationY * 0.8f
-        binding.buttonsGroup.translationY = translationY * 0.8f
+        // Update all LiquidGlassViews
+        try {
+            (binding.root as ViewGroup).forEach { view ->
+                if (view is LiquidGlassView) {
+                    if (isAnimating) {
+                        view.animationDuration = 300
+                    } else {
+                        view.animationDuration = 0
+                    }
 
-        (binding.root as ViewGroup).forEach { view ->
-            if (view is LiquidGlassView) {
-                if (isAnimating) {
-                    // Use animation for a smoother transition back
-                    view.animationDuration = 300
-                } else {
-                    view.animationDuration = 0
+                    // Only add effects on supported API levels
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                        val effects = listOf(
+                            BackdropEffect.Blur(blurRadius, blurRadius),
+                            BackdropEffect.Vibrancy
+                        )
+                        view.setBackdropEffects(effects)
+                        
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                            view.setRefraction(
+                                height = 32f,
+                                amount = refractionAmount,
+                                depthEffect = 0.2f
+                            )
+                        }
+                    }
+
+                    view.alpha = 1 - progress
+                    view.scaleX = 1 - (progress * 0.05f)
+                    view.scaleY = 1 - (progress * 0.05f)
                 }
-
-                view.setBackdropEffects(effects)
-                view.setRefraction(
-                    height = 32f,
-                    amount = refractionAmount,
-                    depthEffect = 0.2f
-                )
-                view.alpha = 1 - progress
-                view.scaleX = 1 - (progress * 0.05f)
-                view.scaleY = 1 - (progress * 0.05f)
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -154,11 +169,15 @@ class ControlCenterFragment : Fragment(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_GRAVITY) {
-            val angle = atan2(event.values[0], event.values[1])
-            (binding.root as ViewGroup).forEach { view ->
-                if (view is LiquidGlassView) {
-                    view.setHighlight(angle, 1.5f, HighlightType.SPECULAR)
+            try {
+                val angle = atan2(event.values[0], event.values[1])
+                (binding.root as? ViewGroup)?.forEach { view ->
+                    if (view is LiquidGlassView) {
+                        view.setHighlight(angle, 1.5f, HighlightType.SPECULAR)
+                    }
                 }
+            } catch (e: Exception) {
+                // Ignore sensor errors
             }
         }
     }

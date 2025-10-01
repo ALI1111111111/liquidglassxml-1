@@ -13,9 +13,15 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.annotation.RequiresApi
 
-@RequiresApi(Build.VERSION_CODES.S)
+/**
+ * A custom view that creates liquid glass effects with backward compatibility.
+ * 
+ * Supported API levels:
+ * - API 21-30: Basic glass effect using Canvas blur and color filters
+ * - API 31+: Full RenderEffect support
+ * - API 33+: RuntimeShader support for advanced effects (refraction, dispersion)
+ */
 open class LiquidGlassView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -329,8 +335,13 @@ open class LiquidGlassView @JvmOverloads constructor(
             shaderController.updateCornerRadii(outlineController.getCornerRadii())
         }
         updateGlobalCoordinates()
-        backdropView.setRenderEffect(shaderController.createBackdropEffect())
-        contentHost.setRenderEffect(shaderController.createContentEffect())
+        
+        // Only apply RenderEffect on API 31+ (Android 12+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            backdropView.setRenderEffect(shaderController.createBackdropEffect())
+            contentHost.setRenderEffect(shaderController.createContentEffect())
+        }
+        
         if (invalidateBackdrop) {
             backdropView.invalidate()
         }
@@ -469,6 +480,78 @@ open class LiquidGlassView @JvmOverloads constructor(
             shaderController.updateGlobalCoordinates(0f, 0f)
         }
     }
+
+    // region Convenience Effect Methods
+    /**
+     * Adds a blur effect to the backdrop.
+     * @param radius Blur radius in pixels
+     */
+    fun addBlurEffect(radius: Float) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val effects = shaderController.backdropEffects.toMutableList()
+        effects.add(BackdropEffect.Blur(radius, radius))
+        setBackdropEffects(effects)
+    }
+
+    /**
+     * Adds vibrancy effect to increase color saturation.
+     */
+    fun addVibrancyEffect() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val effects = shaderController.backdropEffects.toMutableList()
+        effects.add(BackdropEffect.Vibrancy)
+        setBackdropEffects(effects)
+    }
+
+    /**
+     * Adds color controls effect.
+     * @param brightness Brightness adjustment (-1.0 to 1.0)
+     * @param contrast Contrast multiplier (0.0 to 2.0)
+     * @param saturation Saturation multiplier (0.0 to 2.0)
+     */
+    fun addColorControlsEffect(brightness: Float = 0f, contrast: Float = 1f, saturation: Float = 1f) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val effects = shaderController.backdropEffects.toMutableList()
+        effects.add(BackdropEffect.ColorControls(brightness, contrast, saturation))
+        setBackdropEffects(effects)
+    }
+
+    /**
+     * Adds gamma adjustment effect.
+     * @param power Gamma power (0.5 = lighter, 2.0 = darker, 1.0 = no change)
+     */
+    fun addGammaEffect(power: Float) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val effects = shaderController.backdropEffects.toMutableList()
+        effects.add(BackdropEffect.GammaAdjustment(power))
+        setBackdropEffects(effects)
+    }
+
+    /**
+     * Adds opacity effect.
+     * @param alpha Opacity level (0.0 to 1.0)
+     */
+    fun addOpacityEffect(alpha: Float) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val effects = shaderController.backdropEffects.toMutableList()
+        effects.add(BackdropEffect.Opacity(alpha))
+        setBackdropEffects(effects)
+    }
+
+    /**
+     * Clears all backdrop effects.
+     */
+    fun clearBackdropEffects() {
+        setBackdropEffects(emptyList())
+    }
+
+    /**
+     * Clears all content effects.
+     */
+    fun clearContentEffects() {
+        setContentEffects(emptyList())
+    }
+    // endregion
 
     // region Backdrop Layer Transformations
     fun setBackdropAlpha(alpha: Float) { backdropView.alpha = alpha }

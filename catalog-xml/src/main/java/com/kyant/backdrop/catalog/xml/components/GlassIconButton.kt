@@ -49,6 +49,39 @@ class GlassIconButton @JvmOverloads constructor(
             falloff = 1.0f,
             type = com.kyant.backdrop.xml.HighlightType.SPECULAR
         )
+        
+        // Add shadow for depth (matching Compose)
+        val density = resources.displayMetrics.density
+        setShadow(com.kyant.backdrop.xml.DefaultShadow(
+            elevation = 4f * density,
+            color = 0x0D000000.toInt(), // 5% black
+            offsetX = 0f,
+            offsetY = 2f * density
+        ))
+        
+        // Add inner shadow for depth (matching Compose)
+        setInnerShadow(com.kyant.backdrop.xml.DefaultInnerShadow(
+            elevation = 8f * density,
+            color = 0x1A000000.toInt(), // 10% black
+            offsetX = 0f,
+            offsetY = 0f
+        ))
+        
+        // ALWAYS draw surface - light frosted glass appearance
+        onDrawSurface = { canvas ->
+            // Light opacity for frosted glass effect
+            val surfaceAlpha = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                26 // 10% on modern devices (blur + highlight + inner shadow create the effect)
+            } else {
+                38 // 15% on older devices (no blur, needs slightly more)
+            }
+            
+            val surfacePaint = android.graphics.Paint().apply {
+                color = Color.WHITE
+                alpha = surfaceAlpha
+            }
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), surfacePaint)
+        }
 
         setOnClickListener {
             isToggled = !isToggled

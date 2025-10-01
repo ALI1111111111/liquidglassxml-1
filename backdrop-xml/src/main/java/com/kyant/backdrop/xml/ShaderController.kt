@@ -9,19 +9,37 @@ import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.graphics.BitmapShader
 import android.os.Build
-import androidx.annotation.RequiresApi
 
-@RequiresApi(Build.VERSION_CODES.S)
+/**
+ * Controls shader-based effects with backward compatibility support.
+ * For API < 31, uses legacy Canvas-based rendering.
+ */
 internal class ShaderController {
-    // Original, optimized shaders for rounded rectangles
-    private val rrRefractionShader = ShaderCache.get(RoundedRectRefractionString)
-    private val rrDispersionShader = ShaderCache.get(RoundedRectDispersionString)
-    private val rrSpecularHighlightShader = ShaderCache.get(DefaultHighlightShaderString)
-    private val rrAmbientHighlightShader = ShaderCache.get(AmbientHighlightShaderString)
+    // Original, optimized shaders for rounded rectangles (API 33+)
+    private val rrRefractionShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ShaderCache.get(RoundedRectRefractionString)
+    } else null
+    
+    private val rrDispersionShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ShaderCache.get(RoundedRectDispersionString)
+    } else null
+    
+    private val rrSpecularHighlightShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ShaderCache.get(DefaultHighlightShaderString)
+    } else null
+    
+    private val rrAmbientHighlightShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ShaderCache.get(AmbientHighlightShaderString)
+    } else null
 
-    // New, flexible shaders for generic shapes
-    private val genericRefractionShader = ShaderCache.get(GenericRefractionShaderString)
-    private val genericHighlightShader = ShaderCache.get(GenericHighlightShaderString)
+    // New, flexible shaders for generic shapes (API 33+)
+    private val genericRefractionShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ShaderCache.get(GenericRefractionShaderString)
+    } else null
+    
+    private val genericHighlightShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ShaderCache.get(GenericHighlightShaderString)
+    } else null
 
     private var isRoundRect: Boolean = true
     private var shapeMaskBitmap: Bitmap? = null

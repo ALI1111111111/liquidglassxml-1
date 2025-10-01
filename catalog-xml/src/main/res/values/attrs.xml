@@ -4,6 +4,7 @@
         <attr name="android:text" />
         <attr name="tint" format="color" />
         <attr name="surfaceColor" format="color" />
+        <attr name="interactive" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="GlassIconButton">
@@ -12,5 +13,8 @@
 
     <declare-styleable name="GlassSlider">
         <attr name="android:orientation" />
+        <attr name="value" format="float" />
+        <attr name="valueFrom" format="float" />
+        <attr name="valueTo" format="float" />
     </declare-styleable>
 </resources>

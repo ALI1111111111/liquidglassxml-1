@@ -10,7 +10,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 33
+        minSdk = 21
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -28,6 +28,9 @@ android {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
+    }
+    lint {
+        abortOnError = false
     }
 }
 

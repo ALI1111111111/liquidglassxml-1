@@ -353,3 +353,50 @@ internal const val GenericHighlightShaderString = """
         return content.eval(coord) * intensity;
     }
 """
+
+@Language("AGSL")
+internal const val GammaAdjustmentShaderString = """
+    uniform shader content;
+    uniform float power;
+
+    half4 main(float2 coord) {
+        half4 c = content.eval(coord);
+        return half4(pow(c.rgb, half3(power)), c.a);
+    }
+"""
+
+@Language("AGSL")
+internal const val ColorControlsShaderString = """
+    uniform shader content;
+    uniform float brightness;
+    uniform float contrast;
+    uniform float saturation;
+
+    half4 main(float2 coord) {
+        half4 c = content.eval(coord);
+        
+        // Saturation
+        const half3 W = half3(0.2126, 0.7152, 0.0722);
+        half luminance = dot(c.rgb, W);
+        half3 saturated = mix(half3(luminance), c.rgb, saturation);
+        
+        // Contrast and brightness
+        half3 contrasted = (saturated - 0.5) * contrast + 0.5 + brightness;
+        
+        return half4(contrasted, c.a);
+    }
+"""
+
+@Language("AGSL")
+internal const val VibrancyShaderString = """
+    uniform shader content;
+
+    half4 main(float2 coord) {
+        half4 c = content.eval(coord);
+        const half3 W = half3(0.2126, 0.7152, 0.0722);
+        half luminance = dot(c.rgb, W);
+        // Vibrancy increases saturation by 1.5x
+        half3 vibrant = mix(half3(luminance), c.rgb, 1.5);
+        return half4(vibrant, c.a);
+    }
+"""

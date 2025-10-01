@@ -24,16 +24,11 @@
                 android:textColor="@android:color/white"
                 android:layout_marginBottom="16dp"/>
 
-            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+            <com.kyant.backdrop.xml.LiquidGlassView
                 android:id="@+id/glassView"
                 android:layout_width="300dp"
                 android:layout_height="200dp"
-                app:cornerRadius="20dp"
-                app:blurRadius="15"
-                app:tintColor="#80FFFFFF"
-                app:saturation="1.2"
-                app:brightness="1.1"
-                app:refractionIntensity="0.03"/>
+                app:cornerRadius="20dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -87,29 +82,20 @@
                 android:max="100"
                 android:progress="30"/>
 
-            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassButton
+            <Button
                 android:id="@+id/glassButton"
                 android:layout_width="200dp"
                 android:layout_height="60dp"
                 android:layout_marginTop="24dp"
-                app:cornerRadius="30dp"
-                app:blurRadius="10"
-                app:tintColor="#80FFFFFF">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Interactive Button"
-                    android:textColor="@android:color/white"
-                    android:layout_gravity="center"/>
-            </com.ali.funsol.glass.liquid.tech.liquidglass.GlassButton>
+                android:text="Interactive Button"
+                android:textColor="@android:color/white"/>
 
-            <com.ali.funsol.glass.liquid.tech.liquidglass.GlassView
+            <com.kyant.backdrop.xml.LiquidGlassView
                 android:id="@+id/circleGlassView"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
                 android:layout_marginTop="24dp"
-                app:blurRadius="20"
-                app:tintColor="#40FFFFFF"/>
+                app:cornerRadius="75dp"/>
 
         </LinearLayout>
     </ScrollView>
