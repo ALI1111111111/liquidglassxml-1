@@ -22,6 +22,7 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.AttributeSet
 import android.view.View
+import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import com.kyant.backdrop.xml.effects.*
 import com.kyant.backdrop.xml.shaders.LiquidGlassShaders
@@ -39,7 +40,7 @@ class LiquidGlassView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : View(context, attrs, defStyleAttr), RuntimeShaderCacheScope by RuntimeShaderCacheScopeImpl() {
+) : FrameLayout(context, attrs, defStyleAttr), RuntimeShaderCacheScope by RuntimeShaderCacheScopeImpl() {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -74,6 +75,7 @@ class LiquidGlassView @JvmOverloads constructor(
     
     init {
         initFromAttributes(context, attrs)
+        setWillNotDraw(false)
     }
     
     private fun initFromAttributes(context: Context, attrs: AttributeSet?) {
@@ -358,6 +360,25 @@ class LiquidGlassView @JvmOverloads constructor(
         drawInnerShadowEffect(canvas, width, height)
     }
     
+    override fun dispatchDraw(canvas: Canvas) {
+        // Capture background content
+        captureBackgroundContent()
+
+        // Draw shadow effect
+        drawShadowEffect(canvas, width.toFloat(), height.toFloat())
+
+        // Draw main glass effect
+        drawGlassEffect(canvas, width.toFloat(), height.toFloat())
+
+        // Draw highlight effect
+        drawHighlightEffect(canvas, width.toFloat(), height.toFloat())
+
+        // Draw inner shadow effect
+        drawInnerShadowEffect(canvas, width.toFloat(), height.toFloat())
+
+        super.dispatchDraw(canvas)
+    }
+
     private fun captureBackgroundContent() {
         val bgCanvas = backgroundCanvas ?: return
         val bgBitmap = backgroundBitmap ?: return
