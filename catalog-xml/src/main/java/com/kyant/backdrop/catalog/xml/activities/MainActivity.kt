@@ -26,15 +26,7 @@ import com.kyant.backdrop.catalog.xml.adapters.CatalogAdapter
 import com.kyant.backdrop.catalog.xml.databinding.ActivityMainBinding
 import com.kyant.backdrop.catalog.xml.models.CatalogItem
 
-/**
- * Main activity for the XML catalog, replicating the functionality of the Compose catalog.
- * 
- * This activity provides a list of all available demo screens, organized in the same
- * categories as the original Compose catalog:
- * - Liquid glass components
- * - System UIs  
- * - Experiments
- */
+
 class MainActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityMainBinding
@@ -67,33 +59,39 @@ class MainActivity : AppCompatActivity() {
             // Liquid glass components section
             CatalogItem.Header("Liquid glass components"),
             CatalogItem.Demo("Buttons", "Liquid glass buttons with different styles"),
-            CatalogItem.Demo("Sliders", "Liquid glass sliders with different styles"),
-            CatalogItem.Demo("Glass Playground", "Interactive playground to test effects"),
+            CatalogItem.Demo("Slider", "Liquid glass sliders with different styles"),
+            CatalogItem.Demo("Bottom tabs", "Glass bottom tab bar with selection"),
+            CatalogItem.Demo("Dialog", "Glass dialog with backdrop effects"),
             
             // System UIs section
             CatalogItem.Header("System UIs"),
-            CatalogItem.Demo("Lock Screen", "iOS-style lock screen with glass elements"),
-            CatalogItem.Demo("Control Center", "Glass control center interface"),
-            CatalogItem.Demo("Dialog", "Glass dialog with backdrop effects"),
+            CatalogItem.Demo("Lock screen", "iOS-style lock screen with glass elements"),
+            CatalogItem.Demo("Control center", "Glass control center interface"),
             CatalogItem.Demo("Magnifier", "Draggable magnifier with glass effects"),
             
             // Experiments section
             CatalogItem.Header("Experiments"),
-            CatalogItem.Demo("Scroll Container", "Scrollable content with glass backgrounds")
+            CatalogItem.Demo("Glass playground", "Interactive playground to test effects"),
+            CatalogItem.Demo("Adaptive luminance glass", "Glass that adapts to background brightness"),
+            CatalogItem.Demo("Scroll container", "Scrollable content with glass backgrounds"),
+            CatalogItem.Demo("Lazy scroll container", "RecyclerView with glass items")
         )
     }
     
     private fun navigateToDemo(item: CatalogItem.Demo) {
         val intent = when (item.title) {
             "Liquid Test" -> Intent(this, LiquidTestActivity::class.java)
-            "Glass Playground" -> Intent(this, GlassPlaygroundActivity::class.java)
+            "Glass playground" -> Intent(this, GlassPlaygroundActivity::class.java)
             "Buttons" -> Intent(this, ButtonsActivity::class.java)
-            "Sliders" -> Intent(this, SliderActivity::class.java)
-            "Lock Screen" -> Intent(this, LockScreenActivity::class.java)
-            "Control Center" -> Intent(this, ControlCenterActivity::class.java)
+            "Slider" -> Intent(this, com.kyant.backdrop.catalog.xml.SliderActivity::class.java)
+            "Bottom tabs" -> Intent(this, BottomTabsActivity::class.java)
             "Dialog" -> Intent(this, DialogActivity::class.java)
+            "Lock screen" -> Intent(this, LockScreenActivity::class.java)
+            "Control center" -> Intent(this, ControlCenterActivity::class.java)
             "Magnifier" -> Intent(this, MagnifierActivity::class.java)
-            "Scroll Container" -> Intent(this, ScrollContainerActivity::class.java)
+            "Adaptive luminance glass" -> Intent(this, AdaptiveLuminanceGlassActivity::class.java)
+            "Scroll container" -> Intent(this, ScrollContainerActivity::class.java)
+            "Lazy scroll container" -> Intent(this, LazyScrollContainerActivity::class.java)
             else -> return
         }
         startActivity(intent)

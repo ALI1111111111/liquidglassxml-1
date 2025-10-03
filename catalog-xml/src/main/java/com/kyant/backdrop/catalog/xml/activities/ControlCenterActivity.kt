@@ -16,193 +16,194 @@
 
 package com.kyant.backdrop.catalog.xml.activities
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
-import android.net.Uri
+import android.graphics.Color
 import android.os.Bundle
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
+import android.view.Gravity
+import android.view.ViewGroup
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.kyant.backdrop.catalog.xml.databinding.ActivityControlCenterBinding
+import com.kyant.backdrop.catalog.xml.R
 import com.kyant.backdrop.xml.effects.*
+import com.kyant.backdrop.xml.views.LiquidGlassContainer
 
 /**
- * Control Center activity demonstrating glass control panel interface.
- * Equivalent to the Control Center destination in the original Compose catalog.
+ * Control Center activity - matches Compose ControlCenterContent
+ * Displays iOS-style control center with glass tiles arranged in a grid
  */
 class ControlCenterActivity : AppCompatActivity() {
     
-    private lateinit var binding: ActivityControlCenterBinding
-    
-    // Media picker launcher
-    private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { changeBackground(it) }
-    }
-    
-    // Permission launcher
-    private val permissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            openImagePicker()
-        } else {
-            Toast.makeText(this, "Permission denied. Cannot access gallery.", Toast.LENGTH_SHORT).show()
-        }
-    }
-    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityControlCenterBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         
-        setupToolbar()
-        setupVibrancyEffects()
-        setupClickListeners()
-        setupBackgroundPicker()
+        // Set wallpaper background
+        window.decorView.setBackgroundResource(R.drawable.wallpaper)
+        
+        val density = resources.displayMetrics.density
+        val itemSize = (68 * density).toInt()
+        val itemSpacing = (16 * density).toInt()
+        val itemTwoSpanSize = itemSize * 2 + itemSpacing
+        val cornerRadius = itemSize / 2f
+        
+        // Main container
+        val mainLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(
+                itemSpacing,
+                (80 * density).toInt(),
+                itemSpacing,
+                itemSpacing
+            )
+        }
+        
+        // Row 1: Two large 2x2 tiles
+        val row1 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_HORIZONTAL
+        }
+        
+        // Connectivity tile (2x2)
+        row1.addView(createGlassTile(itemTwoSpanSize, itemTwoSpanSize, cornerRadius, true))
+        row1.addView(createSpacer(itemSpacing, itemSpacing))
+        // Music tile (2x2)
+        row1.addView(createGlassTile(itemTwoSpanSize, itemTwoSpanSize, cornerRadius, false))
+        
+        mainLayout.addView(row1)
+        mainLayout.addView(createSpacer(itemSpacing, itemSpacing))
+        
+        // Row 2: Mixed sizes
+        val row2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_HORIZONTAL
+        }
+        
+        // Left column: 2 small + 1 wide
+        val leftColumn = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        
+        val topRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        topRow.addView(createGlassTile(itemSize, itemSize, cornerRadius, false))
+        topRow.addView(createSpacer(itemSpacing, itemSpacing))
+        topRow.addView(createGlassTile(itemSize, itemSize, cornerRadius, false))
+        leftColumn.addView(topRow)
+        
+        leftColumn.addView(createSpacer(itemSpacing, itemSpacing))
+        leftColumn.addView(createGlassTile(itemTwoSpanSize, itemSize, cornerRadius, false))
+        
+        row2.addView(leftColumn)
+        row2.addView(createSpacer(itemSpacing, itemSpacing))
+        
+        // Right side: 2 vertical tiles
+        val rightRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        rightRow.addView(createGlassTile(itemSize, itemTwoSpanSize, cornerRadius, false))
+        rightRow.addView(createSpacer(itemSpacing, itemSpacing))
+        rightRow.addView(createGlassTile(itemSize, itemTwoSpanSize, cornerRadius, false))
+        
+        row2.addView(rightRow)
+        
+        mainLayout.addView(row2)
+        mainLayout.addView(createSpacer(itemSpacing, itemSpacing))
+        
+        // Row 3: Large tile + 2 columns of small tiles
+        val row3 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_HORIZONTAL
+        }
+        
+        row3.addView(createGlassTile(itemTwoSpanSize, itemTwoSpanSize, cornerRadius, false))
+        row3.addView(createSpacer(itemSpacing, itemSpacing))
+        
+        val rightColumn = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        
+        val topRightRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        topRightRow.addView(createGlassTile(itemSize, itemSize, cornerRadius, false))
+        topRightRow.addView(createSpacer(itemSpacing, itemSpacing))
+        topRightRow.addView(createGlassTile(itemSize, itemSize, cornerRadius, false))
+        rightColumn.addView(topRightRow)
+        
+        rightColumn.addView(createSpacer(itemSpacing, itemSpacing))
+        rightColumn.addView(createGlassTile(itemSize, itemSize, cornerRadius, false))
+        
+        row3.addView(rightColumn)
+        
+        mainLayout.addView(row3)
+        
+        setContentView(mainLayout)
     }
     
-    private fun setupToolbar() {
-        supportActionBar?.title = "Control Center"
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-    }
-    
-    private fun setupVibrancyEffects() {
-        // Add vibrancy effects to all glass containers for proper visibility
-        binding.connectivityPanel.setColorFilterEffect(ColorFilterEffect.vibrant())
-        binding.mediaPanel.setColorFilterEffect(ColorFilterEffect.vibrant())
+    private fun createGlassTile(width: Int, height: Int, cornerRadius: Float, hasIcons: Boolean): LiquidGlassContainer {
+        val density = resources.displayMetrics.density
         
-        // Individual connectivity buttons
-        binding.wifiContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
-        binding.bluetoothContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
-        binding.airplaneContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
-        binding.cellularContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
-        
-        // Utility controls
-        binding.brightnessContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
-        binding.volumeContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
-        
-        // Action buttons
-        binding.flashlightContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
-        binding.timerContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
-        binding.calculatorContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
-        binding.cameraContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
-    }
-    
-    private fun setupClickListeners() {
-        // Connectivity toggles
-        binding.wifiButton.setOnClickListener {
-            Toast.makeText(this, "Wi-Fi toggled", Toast.LENGTH_SHORT).show()
-        }
-        
-        binding.bluetoothButton.setOnClickListener {
-            Toast.makeText(this, "Bluetooth toggled", Toast.LENGTH_SHORT).show()
-        }
-        
-        binding.airplaneButton.setOnClickListener {
-            Toast.makeText(this, "Airplane mode toggled", Toast.LENGTH_SHORT).show()
-        }
-        
-        binding.cellularButton.setOnClickListener {
-            Toast.makeText(this, "Cellular data toggled", Toast.LENGTH_SHORT).show()
-        }
-        
-        // Media controls
-        binding.playPauseButton.setOnClickListener {
-            Toast.makeText(this, "Play/Pause", Toast.LENGTH_SHORT).show()
-        }
-        
-        binding.previousButton.setOnClickListener {
-            Toast.makeText(this, "Previous track", Toast.LENGTH_SHORT).show()
-        }
-        
-        binding.nextButton.setOnClickListener {
-            Toast.makeText(this, "Next track", Toast.LENGTH_SHORT).show()
-        }
-        
-        // Action buttons
-        binding.flashlightButton.setOnClickListener {
-            Toast.makeText(this, "Flashlight toggled", Toast.LENGTH_SHORT).show()
-        }
-        
-        binding.timerButton.setOnClickListener {
-            Toast.makeText(this, "Timer opened", Toast.LENGTH_SHORT).show()
-        }
-        
-        binding.calculatorButton.setOnClickListener {
-            Toast.makeText(this, "Calculator opened", Toast.LENGTH_SHORT).show()
-        }
-        
-        binding.cameraButton.setOnClickListener {
-            Toast.makeText(this, "Camera opened", Toast.LENGTH_SHORT).show()
-        }
-    }
-    
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
-    }
-    
-    private fun setupBackgroundPicker() {
-        binding.fabBackgroundPicker.setOnClickListener {
-            checkPermissionAndOpenPicker()
-        }
-    }
-    
-    private fun checkPermissionAndOpenPicker() {
-        val permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_IMAGES
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-        
-        when {
-            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
-                openImagePicker()
-            }
-            ActivityCompat.shouldShowRequestPermissionRationale(this, permission) -> {
-                Toast.makeText(this, "Permission needed to select background images", Toast.LENGTH_LONG).show()
-                permissionLauncher.launch(permission)
-            }
-            else -> {
-                permissionLauncher.launch(permission)
-            }
-        }
-    }
-    
-    private fun openImagePicker() {
-        try {
-            imagePickerLauncher.launch("image/*")
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error opening gallery: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-    
-    private fun changeBackground(imageUri: Uri) {
-        try {
-            Glide.with(this)
-                .load(imageUri)
-                .into(object : CustomTarget<Drawable>() {
-                    override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                        binding.rootLayout.background = resource
-                        Toast.makeText(this@ControlCenterActivity, "Background changed! Glass effects updated.", Toast.LENGTH_SHORT).show()
+        return LiquidGlassContainer(this).apply {
+            layoutParams = LinearLayout.LayoutParams(width, height)
+            setCornerRadius(cornerRadius)
+            setBlurEffect(BlurEffect(8 * density))
+            setRefractionEffect(RefractionEffect(24 * density, 48 * density, true))
+            setColorFilterEffect(ColorFilterEffect.vibrant())
+            setHighlightEffect(HighlightEffect.topLeft(falloff = 2f))
+            setBackgroundColor(Color.argb(13, 0, 0, 0)) // Black with 5% opacity
+            
+            if (hasIcons) {
+                // Add icon placeholders for connectivity tile
+                val iconLayout = FrameLayout(context).apply {
+                    setPadding(
+                        (16 * density).toInt(),
+                        (16 * density).toInt(),
+                        (16 * density).toInt(),
+                        (16 * density).toInt()
+                    )
+                }
+                
+                val innerItemSize = (56 * density).toInt()
+                val iconCornerRadius = innerItemSize / 2f
+                
+                // Top-left icon (inactive)
+                val icon1 = LiquidGlassContainer(context).apply {
+                    layoutParams = FrameLayout.LayoutParams(innerItemSize, innerItemSize).apply {
+                        gravity = Gravity.TOP or Gravity.START
                     }
-                    
-                    override fun onLoadCleared(placeholder: Drawable?) {
-                        // Handle cleanup if needed
+                    setCornerRadius(iconCornerRadius)
+                    setBackgroundColor(Color.argb(51, 255, 255, 255)) // White 20%
+                }
+                iconLayout.addView(icon1)
+                
+                // Top-right icon (active - blue)
+                val icon2 = LiquidGlassContainer(context).apply {
+                    layoutParams = FrameLayout.LayoutParams(innerItemSize, innerItemSize).apply {
+                        gravity = Gravity.TOP or Gravity.END
                     }
-                })
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error loading image: ${e.message}", Toast.LENGTH_SHORT).show()
+                    setCornerRadius(iconCornerRadius)
+                    setBackgroundColor(Color.parseColor("#0088FF"))
+                }
+                iconLayout.addView(icon2)
+                
+                // Bottom-left icon (active - blue)
+                val icon3 = LiquidGlassContainer(context).apply {
+                    layoutParams = FrameLayout.LayoutParams(innerItemSize, innerItemSize).apply {
+                        gravity = Gravity.BOTTOM or Gravity.START
+                    }
+                    setCornerRadius(iconCornerRadius)
+                    setBackgroundColor(Color.parseColor("#0088FF"))
+                }
+                iconLayout.addView(icon3)
+                
+                addView(iconLayout)
+            }
+        }
+    }
+    
+    private fun createSpacer(width: Int, height: Int): android.view.View {
+        return android.view.View(this).apply {
+            layoutParams = LinearLayout.LayoutParams(width, height)
         }
     }
 }

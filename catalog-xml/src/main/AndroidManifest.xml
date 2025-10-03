@@ -71,6 +71,21 @@
             android:name=".activities.ScrollContainerActivity"
             android:exported="false"
             android:theme="@style/Theme.LiquidGlassXmlCatalog" />
+            
+        <activity
+            android:name=".activities.BottomTabsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LiquidGlassXmlCatalog" />
+            
+        <activity
+            android:name=".activities.AdaptiveLuminanceGlassActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LiquidGlassXmlCatalog" />
+            
+        <activity
+            android:name=".activities.LazyScrollContainerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LiquidGlassXmlCatalog" />
 
     </application>
 

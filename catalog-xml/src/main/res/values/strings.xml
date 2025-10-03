@@ -1,13 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Backdrop XML Catalog</string>
-    
-    <!-- Demo screen titles -->
-    <string name="glass_playground">Glass Playground</string>
-    <string name="buttons">Buttons</string>
-    <string name="lock_screen">Lock Screen</string>
-    <string name="control_center">Control Center</string>
-    <string name="dialog">Dialog</string>
-    <string name="magnifier">Magnifier</string>
-    <string name="scroll_container">Scroll Container</string>
+    <string name="app_name">Catalog XML</string>
 </resources>

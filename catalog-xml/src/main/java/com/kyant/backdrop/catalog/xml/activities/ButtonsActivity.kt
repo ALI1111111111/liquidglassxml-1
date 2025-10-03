@@ -16,165 +16,96 @@
 
 package com.kyant.backdrop.catalog.xml.activities
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
+import android.view.Gravity
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
-import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kyant.backdrop.catalog.xml.R
-import com.kyant.backdrop.xml.views.LiquidGlassContainer
-import com.kyant.backdrop.xml.effects.*
+import com.kyant.backdrop.catalog.xml.components.LiquidButton
 
 /**
- * Buttons activity demonstrating various button styles with liquid glass effects using XML layout.
- * Equivalent to the Buttons destination in the original Compose catalog.
+ * Buttons activity - matches Compose ButtonsContent exactly
+ * Displays 4 button variations:
+ * 1. Transparent Liquid Button
+ * 2. Surface Liquid Button (white surface with 30% opacity)
+ * 3. Blue Tinted Liquid Button (#0088FF)
+ * 4. Orange Tinted Liquid Button (#FF8D28)
  */
 class ButtonsActivity : AppCompatActivity() {
 
-    private lateinit var rootLayout: CoordinatorLayout
-
-    // Media picker launcher
-    private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { changeBackground(it) }
-    }
-
-    // Permission launcher
-    private val permissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            openImagePicker()
-        } else {
-            Toast.makeText(this, "Permission denied. Cannot access gallery.", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_buttons)
-
-        rootLayout = findViewById(R.id.rootLayout)
-
-        setupToolbar()
-        setupVibrancyEffects() // Critical for liquid glass visibility
-        setupButtonListeners()
-        setupBackgroundPicker()
-    }
-
-    private fun setupVibrancyEffects() {
-        // Apply vibrancy effect to all glass containers - this is essential for visibility
-        findViewById<LiquidGlassContainer>(R.id.primaryGlassContainer).apply {
-            setColorFilterEffect(ColorFilterEffect.vibrant())
+        
+        // Set wallpaper background
+        window.decorView.setBackgroundResource(R.drawable.wallpaper)
+        
+        // Create main layout
+        val density = resources.displayMetrics.density
+        val mainLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(
+                (32 * density).toInt(),
+                (48 * density).toInt(),
+                (32 * density).toInt(),
+                (48 * density).toInt()
+            )
         }
-
-        findViewById<LiquidGlassContainer>(R.id.secondaryGlassContainer).apply {
-            setColorFilterEffect(ColorFilterEffect.vibrant())
-        }
-
-        findViewById<LiquidGlassContainer>(R.id.accentGlassContainer).apply {
-            setColorFilterEffect(ColorFilterEffect.vibrant())
-        }
-
-        findViewById<LiquidGlassContainer>(R.id.iconGlassContainer).apply {
-            setColorFilterEffect(ColorFilterEffect.vibrant())
-        }
-    }
-
-    private fun setupToolbar() {
-        supportActionBar?.title = "Buttons"
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-    }
-
-    private fun setupButtonListeners() {
-        findViewById<Button>(R.id.primaryButton).setOnClickListener {
-            Toast.makeText(this, "Primary button clicked", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<Button>(R.id.secondaryButton).setOnClickListener {
-            Toast.makeText(this, "Secondary button clicked", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<Button>(R.id.accentButton).setOnClickListener {
-            Toast.makeText(this, "Accent button clicked", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<ImageButton>(R.id.iconButton).setOnClickListener {
-            Toast.makeText(this, "Icon button clicked", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
-    }
-
-    private fun setupBackgroundPicker() {
-        findViewById<FloatingActionButton>(R.id.fabBackgroundPicker).setOnClickListener {
-            checkPermissionAndOpenPicker()
-        }
-    }
-
-    private fun checkPermissionAndOpenPicker() {
-        val permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_IMAGES
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-
-        when {
-            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
-                openImagePicker()
+        
+        // 1. Transparent Liquid Button
+        val button1 = LiquidButton(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = (16 * density).toInt()
             }
-            ActivityCompat.shouldShowRequestPermissionRationale(this, permission) -> {
-                Toast.makeText(this, "Permission needed to select background images", Toast.LENGTH_LONG).show()
-                permissionLauncher.launch(permission)
+            setText("Transparent Liquid Button")
+            setTextColor(Color.BLACK)
+        }
+        mainLayout.addView(button1)
+        
+        // 2. Surface Liquid Button (white surface with 30% opacity)
+        val button2 = LiquidButton(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = (16 * density).toInt()
             }
-            else -> {
-                permissionLauncher.launch(permission)
+            setText("Surface Liquid Button")
+            setTextColor(Color.BLACK)
+            surfaceColor = Color.argb(77, 255, 255, 255) // White with 30% opacity (0.3 * 255 = 77)
+        }
+        mainLayout.addView(button2)
+        
+        // 3. Blue Tinted Liquid Button (#0088FF)
+        val button3 = LiquidButton(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = (16 * density).toInt()
             }
+            setText("Tinted Liquid Button")
+            setTextColor(Color.WHITE)
+            tintColor = Color.parseColor("#0088FF")
         }
-    }
-
-    private fun openImagePicker() {
-        try {
-            imagePickerLauncher.launch("image/*")
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error opening gallery: ${e.message}", Toast.LENGTH_SHORT).show()
+        mainLayout.addView(button3)
+        
+        // 4. Orange Tinted Liquid Button (#FF8D28)
+        val button4 = LiquidButton(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setText("Tinted Liquid Button")
+            setTextColor(Color.WHITE)
+            tintColor = Color.parseColor("#FF8D28")
         }
-    }
-
-    private fun changeBackground(imageUri: Uri) {
-        try {
-            Glide.with(this)
-                .load(imageUri)
-                .into(object : CustomTarget<Drawable>() {
-                    override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                        rootLayout.background = resource
-                        Toast.makeText(this@ButtonsActivity, "Background changed! Glass effects updated.", Toast.LENGTH_SHORT).show()
-                    }
-
-                    override fun onLoadCleared(placeholder: Drawable?) {
-                        // Handle cleanup if needed
-                    }
-                })
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error loading image: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
+        mainLayout.addView(button4)
+        
+        setContentView(mainLayout)
     }
 }
