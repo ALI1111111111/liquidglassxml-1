@@ -1,0 +1,312 @@
+/*
+   Copyright 2025 Kyant
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+
+package com.kyant.backdrop.catalog.xml.components
+
+import android.animation.ValueAnimator
+import android.content.Context
+import android.graphics.*
+import android.util.AttributeSet
+import android.view.*
+import android.widget.*
+import androidx.core.content.ContextCompat
+import com.kyant.backdrop.xml.views.LiquidGlassContainer
+import com.kyant.backdrop.xml.effects.*
+import com.kyant.backdrop.xml.backdrop.XmlBackdrop
+import kotlin.math.*
+
+/**
+ * A liquid slider component that exactly replicates the Compose LiquidSlider.
+ * Provides interactive liquid glass effects with value selection.
+ */
+class LiquidSlider @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ViewGroup(context, attrs, defStyleAttr) {
+
+    private val liquidGlassContainer: LiquidGlassContainer
+    private val thumbContainer: LiquidGlassContainer
+    private val trackView: View
+    private val thumbView: View
+    
+    // Slider properties
+    private var minValue = 0f
+    private var maxValue = 1f
+    private var currentValue = 0.5f
+    
+    // Animation properties
+    private var thumbAnimator: ValueAnimator? = null
+    private var thumbOffset = 0f
+    private var isDragging = false
+    private var dragStartX = 0f
+    
+    // Interaction callbacks
+    private var onValueChangeListener: ((Float) -> Unit)? = null
+    
+    // Visual properties
+    var tintColor = Color.TRANSPARENT
+    var surfaceColor = Color.TRANSPARENT
+
+    init {
+        // Create main container
+        liquidGlassContainer = LiquidGlassContainer(context)
+        
+        // Create track view
+        trackView = View(context).apply {
+            setBackgroundColor(Color.argb(40, 255, 255, 255))
+        }
+        
+        // Create thumb container
+        thumbContainer = LiquidGlassContainer(context)
+        
+        // Create thumb view
+        thumbView = View(context).apply {
+            setBackgroundColor(Color.WHITE)
+        }
+        
+        // Setup hierarchy
+        liquidGlassContainer.addView(trackView)
+        thumbContainer.addView(thumbView)
+        addView(liquidGlassContainer)
+        addView(thumbContainer)
+        
+        // Apply liquid glass effects
+        applyLiquidGlassEffects()
+        
+        // Setup interaction
+        setupInteraction()
+        
+        // Set minimum size
+        minimumWidth = (200 * resources.displayMetrics.density).toInt()
+        minimumHeight = (44 * resources.displayMetrics.density).toInt()
+    }
+    
+    private fun applyLiquidGlassEffects() {
+        val density = resources.displayMetrics.density
+        
+        // Track effects - subtle glass effect
+        liquidGlassContainer.setCornerRadius(22f * density)
+        liquidGlassContainer.setBlurEffect(BlurEffect(1f * density))
+        liquidGlassContainer.setRefractionEffect(RefractionEffect(
+            height = 6f * density,
+            amount = 12f * density,
+            hasDepthEffect = false
+        ))
+        
+        // Thumb effects - strong glass effect like Compose version
+        thumbContainer.setCornerRadius(16f * density)
+        thumbContainer.setColorFilterEffect(ColorFilterEffect(Color.WHITE, 0.3f))
+        thumbContainer.setBlurEffect(BlurEffect(2f * density))
+        thumbContainer.setRefractionEffect(RefractionEffect(
+            height = 12f * density,
+            amount = 24f * density,
+            hasDepthEffect = true
+        ))
+        thumbContainer.setHighlightEffect(HighlightEffect(
+            angle = 45f,
+            alpha = 0.2f
+        ))
+        thumbContainer.setShadowEffect(ShadowEffect(
+            offsetX = 0f,
+            offsetY = 2f * density,
+            radius = 4f * density,
+            color = Color.BLACK,
+            alpha = 0.15f
+        ))
+    }
+    
+    private fun setupInteraction() {
+        setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    isDragging = true
+                    dragStartX = event.x
+                    animateThumbPress(true)
+                    updateValueFromPosition(event.x)
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    if (isDragging) {
+                        updateValueFromPosition(event.x)
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    isDragging = false
+                    animateThumbPress(false)
+                    true
+                }
+                else -> false
+            }
+        }
+        
+        isClickable = true
+        isFocusable = true
+    }
+    
+    private fun updateValueFromPosition(x: Float) {
+        val trackWidth = width - thumbContainer.width
+        val thumbRadius = thumbContainer.width / 2f
+        val clampedX = x.coerceIn(thumbRadius, width - thumbRadius)
+        val progress = (clampedX - thumbRadius) / trackWidth.coerceAtLeast(1f)
+        
+        val newValue = minValue + (maxValue - minValue) * progress
+        setValue(newValue, true)
+    }
+    
+    private fun animateThumbPress(pressed: Boolean) {
+        thumbAnimator?.cancel()
+        
+        val targetScale = if (pressed) 1.1f else 1.0f
+        thumbAnimator = ValueAnimator.ofFloat(thumbContainer.scaleX, targetScale).apply {
+            duration = 150
+            addUpdateListener { animation ->
+                val scale = animation.animatedValue as Float
+                thumbContainer.scaleX = scale
+                thumbContainer.scaleY = scale
+            }
+            start()
+        }
+    }
+    
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val height = maxOf(minimumHeight, (44 * resources.displayMetrics.density).toInt())
+        
+        // Measure main container
+        val trackWidth = width
+        val trackHeight = (8 * resources.displayMetrics.density).toInt()
+        liquidGlassContainer.measure(
+            MeasureSpec.makeMeasureSpec(trackWidth, MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(trackHeight, MeasureSpec.EXACTLY)
+        )
+        
+        // Measure thumb container
+        val thumbSize = (32 * resources.displayMetrics.density).toInt()
+        thumbContainer.measure(
+            MeasureSpec.makeMeasureSpec(thumbSize, MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(thumbSize, MeasureSpec.EXACTLY)
+        )
+        
+        setMeasuredDimension(width, height)
+    }
+    
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        val width = r - l
+        val height = b - t
+        
+        // Layout track in center
+        val trackTop = (height - liquidGlassContainer.measuredHeight) / 2
+        liquidGlassContainer.layout(
+            0, trackTop,
+            width, trackTop + liquidGlassContainer.measuredHeight
+        )
+        
+        // Layout track view within container
+        val trackView = liquidGlassContainer.getChildAt(0)
+        trackView.layout(0, 0, liquidGlassContainer.width, liquidGlassContainer.height)
+        
+        // Layout thumb based on current value
+        updateThumbPosition()
+    }
+    
+    private fun updateThumbPosition() {
+        if (width <= 0) return
+        
+        val trackWidth = width - thumbContainer.measuredWidth
+        val progress = (currentValue - minValue) / (maxValue - minValue).coerceAtLeast(0.001f)
+        val thumbX = (progress * trackWidth).toInt()
+        val thumbY = (height - thumbContainer.measuredHeight) / 2
+        
+        thumbContainer.layout(
+            thumbX, thumbY,
+            thumbX + thumbContainer.measuredWidth,
+            thumbY + thumbContainer.measuredHeight
+        )
+        
+        // Layout thumb view within container
+        val thumbView = thumbContainer.getChildAt(0)
+        thumbView.layout(0, 0, thumbContainer.width, thumbContainer.height)
+    }
+    
+    /**
+     * Sets the slider value range
+     */
+    fun setValueRange(min: Float, max: Float) {
+        minValue = min
+        maxValue = max
+        setValue(currentValue.coerceIn(min, max), false)
+    }
+    
+    /**
+     * Sets the slider value
+     */
+    fun setValue(value: Float, notify: Boolean = true) {
+        val newValue = value.coerceIn(minValue, maxValue)
+        if (newValue != currentValue) {
+            currentValue = newValue
+            updateThumbPosition()
+            if (notify) {
+                onValueChangeListener?.invoke(currentValue)
+            }
+        }
+    }
+    
+    /**
+     * Gets the current slider value
+     */
+    fun getValue(): Float = currentValue
+    
+    /**
+     * Sets the value change listener
+     */
+    fun setOnValueChangeListener(listener: (Float) -> Unit) {
+        onValueChangeListener = listener
+    }
+    
+    /**
+     * Sets the tint color (equivalent to Compose tint parameter)
+     */
+    fun setTintColor(color: Int) {
+        tintColor = color
+        updateSurfaceEffects()
+    }
+    
+    /**
+     * Sets the surface color (equivalent to Compose surfaceColor parameter)
+     */
+    fun setSurfaceColor(color: Int) {
+        surfaceColor = color
+        updateSurfaceEffects()
+    }
+    
+    private fun updateSurfaceEffects() {
+        // Apply surface tinting to thumb
+        if (tintColor != Color.TRANSPARENT || surfaceColor != Color.TRANSPARENT) {
+            val compositeColor = if (surfaceColor != Color.TRANSPARENT) surfaceColor else tintColor
+            thumbContainer.setColorFilterEffect(ColorFilterEffect(compositeColor, 0.3f))
+        }
+    }
+    
+    /**
+     * Sets the backdrop source for liquid glass effects
+     */
+    fun setBackdropSource(backdrop: XmlBackdrop) {
+        liquidGlassContainer.setBackgroundSource(backdrop)
+        thumbContainer.setBackgroundSource(backdrop)
+    }
+}

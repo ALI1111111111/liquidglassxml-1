@@ -1,0 +1,178 @@
+/*
+   Copyright 2025 Kyant
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+
+package com.kyant.backdrop.catalog.xml.activities
+
+import android.graphics.Color
+import android.os.Bundle
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.kyant.backdrop.catalog.xml.R
+import com.kyant.backdrop.catalog.xml.components.LiquidSlider
+import com.kyant.backdrop.xml.backdrop.*
+import com.kyant.backdrop.xml.views.LayerBackdropView
+
+/**
+ * Slider activity demonstrating various slider styles with liquid glass effects.
+ * Equivalent to the Slider destination in the original Compose catalog.
+ * Uses proper 1:1 LiquidSlider components with area-specific backdrop capture.
+ */
+class SliderActivity : AppCompatActivity() {
+    
+    private lateinit var layerBackdrop: LayerBackdropView
+    private lateinit var container: LinearLayout
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        setupToolbar()
+        setupLayout()
+        setupSliders()
+    }
+    
+    private fun setupToolbar() {
+        supportActionBar?.title = "Sliders"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+    
+    private fun setupLayout() {
+        // Create layer backdrop for area-specific capture
+        layerBackdrop = LayerBackdropView(this).apply {
+            // Set the wallpaper as backdrop source
+            val wallpaperDrawable = ContextCompat.getDrawable(this@SliderActivity, R.drawable.wallpaper)
+            if (wallpaperDrawable != null) {
+                setBackdrop(DrawableXmlBackdrop(wallpaperDrawable))
+            }
+        }
+        
+        // Create container for sliders
+        container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(
+                (24 * resources.displayMetrics.density).toInt(),
+                (24 * resources.displayMetrics.density).toInt(),
+                (24 * resources.displayMetrics.density).toInt(),
+                (24 * resources.displayMetrics.density).toInt()
+            )
+        }
+        
+        // Add container to backdrop
+        layerBackdrop.addView(container)
+        setContentView(layerBackdrop)
+    }
+    
+    private fun setupSliders() {
+        val sliderMargin = (24 * resources.displayMetrics.density).toInt()
+        
+        // Volume slider
+        val volumeLabel = TextView(this).apply {
+            text = "Volume: 50%"
+            textSize = 16f
+            setTextColor(Color.WHITE)
+        }
+        
+        val volumeSlider = LiquidSlider(this).apply {
+            setValueRange(0f, 100f)
+            setValue(50f)
+            setBackdropSource(layerBackdrop.getBackdrop())
+            setOnValueChangeListener { value ->
+                volumeLabel.text = "Volume: ${value.toInt()}%"
+            }
+        }
+        
+        // Brightness slider with tint
+        val brightnessLabel = TextView(this).apply {
+            text = "Brightness: 75%"
+            textSize = 16f
+            setTextColor(Color.WHITE)
+        }
+        
+        val brightnessSlider = LiquidSlider(this).apply {
+            setValueRange(0f, 100f)
+            setValue(75f)
+            setTintColor(Color.argb(120, 255, 255, 100)) // Yellow tint
+            setBackdropSource(layerBackdrop.getBackdrop())
+            setOnValueChangeListener { value ->
+                brightnessLabel.text = "Brightness: ${value.toInt()}%"
+            }
+        }
+        
+        // Temperature slider with surface color
+        val temperatureLabel = TextView(this).apply {
+            text = "Temperature: 22°C"
+            textSize = 16f
+            setTextColor(Color.WHITE)
+        }
+        
+        val temperatureSlider = LiquidSlider(this).apply {
+            setValueRange(16f, 30f)
+            setValue(22f)
+            setSurfaceColor(Color.argb(80, 100, 200, 255)) // Blue surface
+            setBackdropSource(layerBackdrop.getBackdrop())
+            setOnValueChangeListener { value ->
+                temperatureLabel.text = "Temperature: ${value.toInt()}°C"
+            }
+        }
+        
+        // Progress slider (read-only feel)
+        val progressLabel = TextView(this).apply {
+            text = "Download Progress: 65%"
+            textSize = 16f
+            setTextColor(Color.WHITE)
+        }
+        
+        val progressSlider = LiquidSlider(this).apply {
+            setValueRange(0f, 100f)
+            setValue(65f)
+            setSurfaceColor(Color.argb(100, 100, 255, 100)) // Green surface
+            setBackdropSource(layerBackdrop.getBackdrop())
+            setOnValueChangeListener { value ->
+                progressLabel.text = "Download Progress: ${value.toInt()}%"
+            }
+        }
+        
+        // Add sliders to container with labels
+        val sliderGroups = listOf(
+            listOf(volumeLabel, volumeSlider),
+            listOf(brightnessLabel, brightnessSlider),
+            listOf(temperatureLabel, temperatureSlider),
+            listOf(progressLabel, progressSlider)
+        )
+        
+        sliderGroups.forEachIndexed { index, group ->
+            group.forEach { view ->
+                val layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    if (view is TextView) {
+                        setMargins(0, if (index == 0) 0 else sliderMargin, 0, (8 * resources.displayMetrics.density).toInt())
+                    } else {
+                        setMargins(0, 0, 0, 0)
+                    }
+                }
+                container.addView(view, layoutParams)
+            }
+        }
+    }
+    
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
+    }
+}

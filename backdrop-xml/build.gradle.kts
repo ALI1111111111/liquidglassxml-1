@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.kyant.backdrop.xml"
     compileSdk = 36
+    buildToolsVersion = "36.1.0"
 
     defaultConfig {
         minSdk = 21
@@ -21,19 +22,22 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlin {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
+            jvmTarget = JvmTarget.JVM_21
+            freeCompilerArgs.addAll(
+                "-jvm-default=no-compatibility",
+            )
         }
-    }
-    lint {
-        abortOnError = false
     }
 }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    
+    // For optional integration with the original backdrop module
+    compileOnly(project(":backdrop"))
 }

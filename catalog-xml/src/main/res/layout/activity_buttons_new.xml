@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.kyant.backdrop.catalog.xml.components.LayerBackdropView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/backdropView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="16dp">
+
+            <!-- Transparent Liquid Button -->
+            <com.kyant.backdrop.catalog.xml.components.LiquidButton
+                android:id="@+id/transparentButton"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Surface Liquid Button -->
+            <com.kyant.backdrop.catalog.xml.components.LiquidButton
+                android:id="@+id/surfaceButton"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Tinted Liquid Button (Blue) -->
+            <com.kyant.backdrop.catalog.xml.components.LiquidButton
+                android:id="@+id/tintedBlueButton"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Tinted Liquid Button (Orange) -->
+            <com.kyant.backdrop.catalog.xml.components.LiquidButton
+                android:id="@+id/tintedOrangeButton"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</com.kyant.backdrop.catalog.xml.components.LayerBackdropView>

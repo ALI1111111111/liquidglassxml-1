@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/wallpaper">
+
+    <!-- Background Content to Magnify -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Magnifier Demo"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Instructions -->
+        <com.kyant.backdrop.xml.views.LiquidGlassContainer
+            android:id="@+id/instructionsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Interactive Magnifier"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tap and hold anywhere on the screen to activate the magnifier. Move your finger to explore different areas with glass distortion effects."
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white" />
+
+            </LinearLayout>
+
+        </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+        <!-- Sample Content Grid -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sample Content"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="16dp" />
+
+        <GridLayout
+            android:id="@+id/gridLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:rowCount="3">
+
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="📱 Apps"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"
+                    android:padding="16dp" />
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="🎵 Music"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"
+                    android:padding="16dp" />
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="📷 Photos"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"
+                    android:padding="16dp" />
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="⚙️ Settings"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"
+                    android:padding="16dp" />
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="🌐 Web"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"
+                    android:padding="16dp" />
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="💬 Messages"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"
+                    android:padding="16dp" />
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+        </GridLayout>
+
+        <!-- Controls -->
+        <com.kyant.backdrop.xml.views.LiquidGlassContainer
+            android:id="@+id/controlsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Magnification Level"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginBottom="12dp" />
+
+                <SeekBar
+                    android:id="@+id/magnificationSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:progress="50"
+                    android:max="100" />
+
+                <TextView
+                    android:id="@+id/magnificationLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2.0x"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
+
+        </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+    </LinearLayout>
+
+    <!-- Magnifier Overlay (Hidden by default) -->
+    <com.kyant.backdrop.xml.views.LiquidGlassContainer
+        android:id="@+id/magnifierOverlay"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_centerInParent="true"
+        android:visibility="gone">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Magnified Content View -->
+            <View
+                android:id="@+id/magnifiedContent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent" />
+
+            <!-- Magnifier Border -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/magnifier_border" />
+
+        </RelativeLayout>
+
+    </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+    <!-- Touch Indicator -->
+    <View
+        android:id="@+id/touchIndicator"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:background="@drawable/touch_indicator"
+        android:visibility="gone" />
+
+</RelativeLayout>

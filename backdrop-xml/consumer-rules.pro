@@ -1,0 +1,1 @@
+# Add consumer ProGuard rules here for the backdrop-xml library.

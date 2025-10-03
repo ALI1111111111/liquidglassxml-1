@@ -1,36 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    
+    <!-- Attributes for LiquidGlassView -->
     <declare-styleable name="LiquidGlassView">
+        <!-- Corner radius -->
         <attr name="cornerRadius" format="dimension" />
-        <attr name="topLeftCornerRadius" format="dimension" />
-        <attr name="topRightCornerRadius" format="dimension" />
-        <attr name="bottomLeftCornerRadius" format="dimension" />
-        <attr name="bottomRightCornerRadius" format="dimension" />
+        <attr name="cornerRadiusTopLeft" format="dimension" />
+        <attr name="cornerRadiusTopRight" format="dimension" />
+        <attr name="cornerRadiusBottomRight" format="dimension" />
+        <attr name="cornerRadiusBottomLeft" format="dimension" />
+        
+        <!-- Refraction effect -->
         <attr name="refractionHeight" format="dimension" />
         <attr name="refractionAmount" format="dimension" />
-        <attr name="depthEffect" format="float" />
+        <attr name="refractionDepthEffect" format="boolean" />
+        
+        <!-- Dispersion effect -->
         <attr name="dispersionHeight" format="dimension" />
         <attr name="dispersionAmount" format="dimension" />
+        
+        <!-- Blur effect -->
+        <attr name="blurRadius" format="dimension" />
+        <attr name="blurStyle" format="enum">
+            <enum name="normal" value="0" />
+            <enum name="solid" value="1" />
+            <enum name="outer" value="2" />
+            <enum name="inner" value="3" />
+        </attr>
+        
+        <!-- Highlight effect -->
         <attr name="highlightAngle" format="float" />
         <attr name="highlightFalloff" format="float" />
-
-        <attr name="shadowElevation" format="dimension" />
-        <attr name="shadowColor" format="color" />
+        <attr name="highlightColor" format="color" />
+        <attr name="highlightAlpha" format="float" />
+        
+        <!-- Shadow effect -->
         <attr name="shadowOffsetX" format="dimension" />
         <attr name="shadowOffsetY" format="dimension" />
-
-        <attr name="innerShadowElevation" format="dimension" />
-        <attr name="innerShadowColor" format="color" />
+        <attr name="shadowRadius" format="dimension" />
+        <attr name="shadowColor" format="color" />
+        <attr name="shadowAlpha" format="float" />
+        
+        <!-- Inner shadow effect -->
         <attr name="innerShadowOffsetX" format="dimension" />
         <attr name="innerShadowOffsetY" format="dimension" />
-
-        <attr name="layerId" format="string" />
-        <attr name="animationDuration" format="integer" />
-
-        <attr name="highlightType" format="enum">
-            <enum name="specular" value="0" />
-            <enum name="ambient" value="1" />
+        <attr name="innerShadowRadius" format="dimension" />
+        <attr name="innerShadowColor" format="color" />
+        <attr name="innerShadowAlpha" format="float" />
+        
+        <!-- Preset configurations -->
+        <attr name="glassPreset" format="enum">
+            <enum name="none" value="0" />
+            <enum name="iosButton" value="1" />
+            <enum name="materialCard" value="2" />
+            <enum name="frostedOverlay" value="3" />
+            <enum name="chromaticGlass" value="4" />
+            <enum name="subtlePanel" value="5" />
+            <enum name="gamingGlass" value="6" />
+            <enum name="minimalist" value="7" />
+            <enum name="heavyGlass" value="8" />
+            <enum name="notificationPanel" value="9" />
+            <enum name="pressedButton" value="10" />
+            <enum name="navigationBar" value="11" />
+            <enum name="fab" value="12" />
+            <enum name="dialogBackdrop" value="13" />
         </attr>
-        <attr name="drawContent" format="boolean" />
     </declare-styleable>
+    
+    <!-- Attributes for LiquidGlassContainer -->
+    <declare-styleable name="LiquidGlassContainer">
+        <!-- Inherit all attributes from LiquidGlassView -->
+        <attr name="cornerRadius" />
+        <attr name="cornerRadiusTopLeft" />
+        <attr name="cornerRadiusTopRight" />
+        <attr name="cornerRadiusBottomRight" />
+        <attr name="cornerRadiusBottomLeft" />
+        
+        <attr name="refractionHeight" />
+        <attr name="refractionAmount" />
+        <attr name="refractionDepthEffect" />
+        
+        <attr name="dispersionHeight" />
+        <attr name="dispersionAmount" />
+        
+        <attr name="blurRadius" />
+        <attr name="blurStyle" />
+        
+        <attr name="highlightAngle" />
+        <attr name="highlightFalloff" />
+        <attr name="highlightColor" />
+        <attr name="highlightAlpha" />
+        
+        <attr name="shadowOffsetX" />
+        <attr name="shadowOffsetY" />
+        <attr name="shadowRadius" />
+        <attr name="shadowColor" />
+        <attr name="shadowAlpha" />
+        
+        <attr name="innerShadowOffsetX" />
+        <attr name="innerShadowOffsetY" />
+        <attr name="innerShadowRadius" />
+        <attr name="innerShadowColor" />
+        <attr name="innerShadowAlpha" />
+        
+        <attr name="glassPreset" />
+    </declare-styleable>
+    
 </resources>

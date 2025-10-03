@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/wallpaper">
+
+    <!-- Header -->
+    <TextView
+        android:id="@+id/header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="48dp"
+        android:text="Liquid Glass Test"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white" />
+
+    <!-- Test Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:padding="32dp">
+
+        <!-- Test 1: Very strong refraction effect -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Strong Refraction Effect"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="8dp" />
+
+        <com.kyant.backdrop.xml.views.LiquidGlassContainer
+            android:id="@+id/strongRefractionContainer"
+            android:layout_width="match_parent"
+            app:refractionDepthEffect="true"
+            android:layout_height="120dp"
+            android:layout_marginBottom="32dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Very Strong Liquid Glass Refraction"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:gravity="center"
+                android:background="#40FFFFFF" />
+
+        </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+        <!-- Test 2: Very strong blur effect -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Strong Blur Effect"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="8dp" />
+
+        <com.kyant.backdrop.xml.views.LiquidGlassContainer
+            android:id="@+id/strongBlurContainer"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginBottom="32dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Very Strong Blur Effect"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:gravity="center"
+                android:background="#40FFFFFF" />
+
+        </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+        <!-- Test 3: Chromatic dispersion -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chromatic Dispersion"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="8dp" />
+
+        <com.kyant.backdrop.xml.views.LiquidGlassContainer
+            android:id="@+id/chromaticContainer"
+            android:layout_width="match_parent"
+            android:layout_height="120dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Rainbow Chromatic Dispersion"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:gravity="center"
+                android:background="#40FFFFFF" />
+
+        </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+    </LinearLayout>
+
+</RelativeLayout>

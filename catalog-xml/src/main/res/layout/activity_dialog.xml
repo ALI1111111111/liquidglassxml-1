@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/wallpaper">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Header -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dialog Examples"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="32dp" />
+
+            <!-- Dialog Triggers -->
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:id="@+id/alertDialogContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <Button
+                    android:id="@+id/alertDialogButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
+                    android:text="Show Alert Dialog"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/white"
+                    android:background="@android:color/transparent" />
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:id="@+id/confirmDialogContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <Button
+                    android:id="@+id/confirmDialogButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
+                    android:text="Show Confirmation Dialog"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/white"
+                    android:background="@android:color/transparent" />
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:id="@+id/customDialogContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <Button
+                    android:id="@+id/customDialogButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
+                    android:text="Show Custom Glass Dialog"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/white"
+                    android:background="@android:color/transparent" />
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:id="@+id/inputDialogContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <Button
+                    android:id="@+id/inputDialogButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
+                    android:text="Show Input Dialog"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/white"
+                    android:background="@android:color/transparent" />
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Glass Dialog Overlay (Hidden by default) -->
+    <com.kyant.backdrop.xml.views.LiquidGlassContainer
+        android:id="@+id/dialogOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="32dp">
+
+            <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                android:id="@+id/customDialogCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <TextView
+                        android:id="@+id/dialogTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Glass Dialog"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:id="@+id/dialogMessage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="This is a custom dialog with glass morphism effects. The background is blurred and the dialog has a beautiful glass appearance."
+                        android:textSize="16sp"
+                        android:textColor="@android:color/white"
+                        android:layout_marginBottom="24dp" />
+
+                    <EditText
+                        android:id="@+id/dialogInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:hint="Enter text here..."
+                        android:textColorHint="#AAFFFFFF"
+                        android:textColor="@android:color/white"
+                        android:background="@android:color/transparent"
+                        android:padding="12dp"
+                        android:visibility="gone"
+                        android:layout_marginBottom="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="end">
+
+                        <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                            android:id="@+id/dialogCancelContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp">
+
+                            <Button
+                                android:id="@+id/dialogCancelButton"
+                                android:layout_width="100dp"
+                                android:layout_height="48dp"
+                                android:text="Cancel"
+                                android:textColor="@android:color/white"
+                                android:background="@android:color/transparent" />
+
+                        </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+                        <com.kyant.backdrop.xml.views.LiquidGlassContainer
+                            android:id="@+id/dialogConfirmContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+
+                            <Button
+                                android:id="@+id/dialogConfirmButton"
+                                android:layout_width="100dp"
+                                android:layout_height="48dp"
+                                android:text="OK"
+                                android:textColor="@android:color/white"
+                                android:background="@android:color/transparent" />
+
+                        </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+        </RelativeLayout>
+
+    </com.kyant.backdrop.xml.views.LiquidGlassContainer>
+
+</RelativeLayout>
