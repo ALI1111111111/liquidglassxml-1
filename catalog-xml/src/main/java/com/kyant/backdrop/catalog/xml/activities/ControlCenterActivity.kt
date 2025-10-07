@@ -1,24 +1,9 @@
-/*
-   Copyright 2025 Kyant
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-
 package com.kyant.backdrop.catalog.xml.activities
 
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -34,9 +19,11 @@ class ControlCenterActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        supportActionBar?.hide()
         
         // Set wallpaper background
-        window.decorView.setBackgroundResource(R.drawable.wallpaper)
+        window.decorView.setBackgroundResource(R.drawable.wallpaper_light)
         
         val density = resources.displayMetrics.density
         val itemSize = (68 * density).toInt()
@@ -201,8 +188,8 @@ class ControlCenterActivity : AppCompatActivity() {
         }
     }
     
-    private fun createSpacer(width: Int, height: Int): android.view.View {
-        return android.view.View(this).apply {
+    private fun createSpacer(width: Int, height: Int): View {
+        return View(this).apply {
             layoutParams = LinearLayout.LayoutParams(width, height)
         }
     }

@@ -1,18 +1,3 @@
-/*
-   Copyright 2025 Kyant
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
 
 package com.kyant.backdrop.catalog.xml.activities
 
@@ -61,19 +46,19 @@ class MainActivity : AppCompatActivity() {
             CatalogItem.Demo("Buttons", "Liquid glass buttons with different styles"),
             CatalogItem.Demo("Slider", "Liquid glass sliders with different styles"),
             CatalogItem.Demo("Bottom tabs", "Glass bottom tab bar with selection"),
-            CatalogItem.Demo("Dialog", "Glass dialog with backdrop effects"),
+//            CatalogItem.Demo("Dialog", "Glass dialog with backdrop effects"),
             
             // System UIs section
             CatalogItem.Header("System UIs"),
             CatalogItem.Demo("Lock screen", "iOS-style lock screen with glass elements"),
             CatalogItem.Demo("Control center", "Glass control center interface"),
-            CatalogItem.Demo("Magnifier", "Draggable magnifier with glass effects"),
+//            CatalogItem.Demo("Magnifier", "Draggable magnifier with glass effects"),
             
             // Experiments section
             CatalogItem.Header("Experiments"),
             CatalogItem.Demo("Glass playground", "Interactive playground to test effects"),
             CatalogItem.Demo("Adaptive luminance glass", "Glass that adapts to background brightness"),
-            CatalogItem.Demo("Scroll container", "Scrollable content with glass backgrounds"),
+//            CatalogItem.Demo("Scroll container", "Scrollable content with glass backgrounds"),
             CatalogItem.Demo("Lazy scroll container", "RecyclerView with glass items")
         )
     }
@@ -85,12 +70,12 @@ class MainActivity : AppCompatActivity() {
             "Buttons" -> Intent(this, ButtonsActivity::class.java)
             "Slider" -> Intent(this, com.kyant.backdrop.catalog.xml.SliderActivity::class.java)
             "Bottom tabs" -> Intent(this, BottomTabsActivity::class.java)
-            "Dialog" -> Intent(this, DialogActivity::class.java)
+//            "Dialog" -> Intent(this, DialogActivity::class.java)
             "Lock screen" -> Intent(this, LockScreenActivity::class.java)
             "Control center" -> Intent(this, ControlCenterActivity::class.java)
-            "Magnifier" -> Intent(this, MagnifierActivity::class.java)
+//            "Magnifier" -> Intent(this, MagnifierActivity::class.java)
             "Adaptive luminance glass" -> Intent(this, AdaptiveLuminanceGlassActivity::class.java)
-            "Scroll container" -> Intent(this, ScrollContainerActivity::class.java)
+//            "Scroll container" -> Intent(this, ScrollContainerActivity::class.java)
             "Lazy scroll container" -> Intent(this, LazyScrollContainerActivity::class.java)
             else -> return
         }

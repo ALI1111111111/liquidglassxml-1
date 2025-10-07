@@ -8,7 +8,6 @@ import android.util.AttributeSet
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.TextView
-import androidx.compose.ui.graphics.ShaderBrush
 import androidx.core.animation.doOnEnd
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
@@ -22,21 +21,21 @@ class LiquidButton @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
-    private val liquidGlassContainer: LiquidGlassContainer
+    // Main Glass Container
+    private val liquidGlassContainer: LiquidGlassContainer = LiquidGlassContainer(context)
     private val buttonText: TextView
-
-    // Animations
+    private val tintPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var offsetAnimation: ValueAnimator? = null
     private var pressStartPosition = PointF(0f, 0f)
     private var currentOffset = PointF(0f, 0f)
 
-    // Spring scale animations
     private val springScaleX = SpringAnimation(this, SpringAnimation.SCALE_X, 1f).apply {
         spring = SpringForce(1f).apply {
             dampingRatio = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY
             stiffness = SpringForce.STIFFNESS_MEDIUM
         }
     }
+
     private val springScaleY = SpringAnimation(this, SpringAnimation.SCALE_Y, 1f).apply {
         spring = SpringForce(1f).apply {
             dampingRatio = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY
@@ -44,19 +43,21 @@ class LiquidButton @JvmOverloads constructor(
         }
     }
 
-    // Highlight animation
     private var highlightProgress = 0f
     private var highlightAnimator: ValueAnimator? = null
     private val shaderPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var runtimeShader: RuntimeShader? = null
+    private var timeAnimator: ValueAnimator? = null
+    private var time = 0f
 
-    // Public properties
     var isInteractive = true
+
     var tintColor = Color.TRANSPARENT
         set(value) {
             field = value
             updateSurfaceEffects()
         }
+
     var surfaceColor = Color.TRANSPARENT
         set(value) {
             field = value
@@ -66,10 +67,8 @@ class LiquidButton @JvmOverloads constructor(
     private var onClickListener: OnClickListener? = null
 
     init {
-        // Glass container
-        liquidGlassContainer = LiquidGlassContainer(context)
 
-        // Text inside
+        // TextView in center
         buttonText = TextView(context).apply {
             textSize = 15f
             setTextColor(Color.WHITE)
@@ -84,62 +83,109 @@ class LiquidButton @JvmOverloads constructor(
             )
         }
 
-        liquidGlassContainer.addView(buttonText, LayoutParams(
-            LayoutParams.MATCH_PARENT,
-            LayoutParams.WRAP_CONTENT
-        ).apply { gravity = Gravity.CENTER })
+        liquidGlassContainer.addView(
+            buttonText,
+            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.CENTER
+            }
+        )
 
-        addView(liquidGlassContainer, LayoutParams(
-            LayoutParams.MATCH_PARENT,
-            LayoutParams.WRAP_CONTENT
-        ))
+        addView(liquidGlassContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
-        // Apply effects
         applyLiquidGlassEffects()
-
-        // Setup interaction
         setupInteraction()
+        setupShader()
+        startTimeAnimation()
 
-        // Setup highlight shader (Android 13+)
+        minimumHeight = (56 * resources.displayMetrics.density).toInt()
+        clipToOutline = true
+        clipChildren = true
+    }
+
+    // 🌊 Initialize the enhanced shader
+    private fun setupShader() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             runtimeShader = RuntimeShader(
                 """
                 uniform float2 size;
                 uniform float2 offset;
                 uniform float radius;
-                uniform float4 color;
-                
+                uniform float time;
+                uniform half4 color;
+
+                float noise(float2 p) {
+                    return fract(sin(dot(p, float2(12.9898,78.233))) * 43758.5453);
+                }
+
+                float smoothNoise(float2 p) {
+                    float2 i = floor(p);
+                    float2 f = fract(p);
+                    float a = noise(i);
+                    float b = noise(i + float2(1.0, 0.0));
+                    float c = noise(i + float2(0.0, 1.0));
+                    float d = noise(i + float2(1.0, 1.0));
+                    float2 u = f * f * (3.0 - 2.0 * f);
+                    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+                }
+
                 half4 main(float2 fragCoord) {
-                    float2 uv = fragCoord.xy / size;
+                    float2 uv = fragCoord / size;
                     float2 center = offset / size;
-                    float dist = distance(uv, center);
-                    float glow = exp(-pow(dist * radius, 2.0));
-                    return half4(color.rgb, color.a * glow);
+                    float2 delta = uv - center;
+                    float dist = length(delta);
+
+                    // Ripple distortion
+                    float ripple = sin(dist * radius * 0.4 - time * 3.0) * 0.06;
+                    float2 distortedUV = uv + normalize(delta) * ripple;
+
+                    // Subtle glass shimmer
+                    float shimmer = smoothNoise(uv * 6.0 + time * 0.6) * 0.15;
+
+                    // Chromatic aberration
+                    float3 baseColor = float3(
+                        0.9 + 0.1 * sin(time + distortedUV.x * 6.2831),
+                        0.95 + 0.05 * sin(time + distortedUV.y * 6.2831),
+                        1.0
+                    );
+
+                    // Central glow for press highlight
+                    float glow = exp(-pow(dist * radius * 0.45, 2.0)) * 1.1;
+
+                    float alpha = color.a * (glow + shimmer);
+                    return half4(baseColor * color.rgb, alpha);
                 }
                 """
             )
         }
-
-        minimumHeight = (56 * resources.displayMetrics.density).toInt()
     }
 
+    // 🕓 Animate shader time for live shimmer
+    private fun startTimeAnimation() {
+        timeAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 4000
+            repeatCount = ValueAnimator.INFINITE
+            addUpdateListener {
+                time += 0.02f
+                invalidate()
+            }
+            start()
+        }
+    }
+
+    // Glass effects setup
     private fun applyLiquidGlassEffects() {
         val density = resources.displayMetrics.density
         liquidGlassContainer.setCornerRadius(28f * density)
-
-        liquidGlassContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
+        liquidGlassContainer.setColorFilterEffect(ColorFilterEffect(brightness = 0.18f, saturation = 1.1f))
         liquidGlassContainer.setBlurEffect(BlurEffect(2f * density))
         liquidGlassContainer.setRefractionEffect(
-            RefractionEffect(
-                height = 12f * density,
-                amount = 24f * density,
-                hasDepthEffect = true
-            )
+            RefractionEffect(height = 6f * density, amount = 12f * density, hasDepthEffect = false)
         )
         liquidGlassContainer.setHighlightEffect(HighlightEffect(angle = 45f, alpha = 0.15f))
         updateSurfaceEffects()
     }
 
+    // 👆 Handle touch and press animations
     private fun setupInteraction() {
         setOnTouchListener { _, event ->
             if (!isInteractive) return@setOnTouchListener false
@@ -150,26 +196,28 @@ class LiquidButton @JvmOverloads constructor(
                     animatePress(true)
                     true
                 }
+
                 MotionEvent.ACTION_MOVE -> {
-                    val dragAmount = PointF(
-                        event.x - pressStartPosition.x,
-                        event.y - pressStartPosition.y
-                    )
+                    val dragAmount = PointF(event.x - pressStartPosition.x, event.y - pressStartPosition.y)
                     animateOffset(dragAmount)
                     true
                 }
+
                 MotionEvent.ACTION_UP -> {
                     animatePress(false)
                     performClick()
                     true
                 }
+
                 MotionEvent.ACTION_CANCEL -> {
                     animatePress(false)
                     true
                 }
+
                 else -> false
             }
         }
+
         isClickable = true
         isFocusable = true
     }
@@ -179,13 +227,9 @@ class LiquidButton @JvmOverloads constructor(
         springScaleX.animateToFinalPosition(targetScale)
         springScaleY.animateToFinalPosition(targetScale)
 
-        // Animate highlight fade in/out
         highlightAnimator?.cancel()
-        highlightAnimator = ValueAnimator.ofFloat(
-            highlightProgress,
-            if (pressed) 1f else 0f
-        ).apply {
-            duration = 300
+        highlightAnimator = ValueAnimator.ofFloat(highlightProgress, if (pressed) 1f else 0f).apply {
+            duration = 250
             addUpdateListener {
                 highlightProgress = it.animatedValue as Float
                 invalidate()
@@ -193,11 +237,8 @@ class LiquidButton @JvmOverloads constructor(
             start()
         }
 
-        // Update base highlight effect alpha
         val targetAlpha = if (pressed) 0.25f else 0.15f
-        liquidGlassContainer.setHighlightEffect(
-            HighlightEffect(angle = 45f, alpha = targetAlpha)
-        )
+        liquidGlassContainer.setHighlightEffect(HighlightEffect(angle = 45f, alpha = targetAlpha))
     }
 
     private fun animateOffset(dragAmount: PointF) {
@@ -212,8 +253,8 @@ class LiquidButton @JvmOverloads constructor(
 
         offsetAnimation = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 100
-            addUpdateListener { animation ->
-                val progress = animation.animatedValue as Float
+            addUpdateListener {
+                val progress = it.animatedValue as Float
                 val targetOffset = PointF(
                     dampedOffset.x * progress,
                     dampedOffset.y * progress
@@ -224,11 +265,10 @@ class LiquidButton @JvmOverloads constructor(
                 invalidate()
             }
             doOnEnd {
-                // Animate back
                 ValueAnimator.ofFloat(1f, 0f).apply {
                     duration = 200
-                    addUpdateListener { animation ->
-                        val progress = animation.animatedValue as Float
+                    addUpdateListener { anim ->
+                        val progress = anim.animatedValue as Float
                         liquidGlassContainer.translationX = currentOffset.x * progress
                         liquidGlassContainer.translationY = currentOffset.y * progress
                         invalidate()
@@ -241,72 +281,89 @@ class LiquidButton @JvmOverloads constructor(
     }
 
     private fun updateSurfaceEffects() {
-        if (tintColor != Color.TRANSPARENT || surfaceColor != Color.TRANSPARENT) {
-            val brightness = if (surfaceColor != Color.TRANSPARENT) 0.1f else 0f
-            val saturation = if (tintColor != Color.TRANSPARENT) 1.2f else 1f
-            liquidGlassContainer.setColorFilterEffect(
-                ColorFilterEffect(
-                    brightness = brightness,
-                    saturation = saturation
-                )
-            )
-        } else {
-            liquidGlassContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
+        val hasTint = tintColor != Color.TRANSPARENT
+        val hasSurface = surfaceColor != Color.TRANSPARENT
+        val brightness = if (hasSurface) 0.25f else 0.15f
+        val saturation = if (hasTint) 1.3f else 1.1f
+
+        liquidGlassContainer.setColorFilterEffect(ColorFilterEffect(brightness = brightness, saturation = saturation))
+        tintPaint.color = tintColor
+        tintPaint.alpha = when {
+            hasTint -> 190
+            hasSurface -> 100
+            else -> 0
         }
+        tintPaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)
+        invalidate()
     }
 
     override fun dispatchDraw(canvas: Canvas) {
+        if (tintPaint.alpha > 0) {
+            val radius = 28f * resources.displayMetrics.density
+            val overlayRect = RectF(0f, 0f, width.toFloat(), height.toFloat())
+            canvas.drawRoundRect(overlayRect, radius, radius, tintPaint)
+        }
+
         super.dispatchDraw(canvas)
 
-        if (isInteractive && highlightProgress > 0f) {
-            val w = width.toFloat()
-            val h = height.toFloat()
-            val radius = max(w, h)
+        // Reflection gradient
+        val gradient = LinearGradient(
+            0f, 0f, 0f, height * 0.6f,
+            Color.argb(80, 255, 255, 255),
+            Color.TRANSPARENT,
+            Shader.TileMode.CLAMP
+        )
+        val reflectionPaint = Paint().apply {
+            shader = gradient
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)
+        }
+        val corner = 28f * resources.displayMetrics.density
+        canvas.drawRoundRect(0f, 0f, width.toFloat(), height.toFloat(), corner, corner, reflectionPaint)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && runtimeShader != null) {
-                runtimeShader?.setFloatUniform("size", w, h)
-                runtimeShader?.setFloatUniform(
-                    "offset",
-                    pressStartPosition.x + currentOffset.x,
-                    pressStartPosition.y + currentOffset.y
-                )
-                runtimeShader?.setFloatUniform("radius", radius)
-                runtimeShader?.setColorUniform(
-                    "color",
-                    Color.argb((highlightProgress * 0.15f * 255).toInt(), 255, 255, 255)
-                )
+        drawHighlightEffect(canvas)
+    }
 
+    private fun drawHighlightEffect(canvas: Canvas) {
+        if (!isInteractive || highlightProgress <= 0f) return
+
+        val w = width.toFloat()
+        val h = height.toFloat()
+        val radius = max(w, h)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && runtimeShader != null) {
+            try {
+                runtimeShader?.apply {
+                    setFloatUniform("size", w, h)
+                    setFloatUniform("offset", pressStartPosition.x + currentOffset.x, pressStartPosition.y + currentOffset.y)
+                    setFloatUniform("radius", radius)
+                    setFloatUniform("time", time)
+                    setColorUniform("color", Color.valueOf(1f, 1f, 1f, 0.3f * highlightProgress))
+                }
                 shaderPaint.shader = runtimeShader
-                canvas.drawRect(0f, 0f, w, h, shaderPaint)
-
-            } else {
-                // 🔄 Better Fallback: Radial Gradient (centered on press point)
-                val cx = pressStartPosition.x + currentOffset.x
-                val cy = pressStartPosition.y + currentOffset.y
-                val gradientRadius = radius * 0.75f
-
-                shaderPaint.shader = RadialGradient(
-                    cx, cy, gradientRadius,
-                    Color.argb((highlightProgress * 40).toInt(), 255, 255, 255), // center brighter
-                    Color.TRANSPARENT, // fade to transparent
-                    Shader.TileMode.CLAMP
-                )
-
-                canvas.drawRect(0f, 0f, w, h, shaderPaint)
+                canvas.drawRoundRect(0f, 0f, w, h, 28f, 28f, shaderPaint)
+            } catch (_: Exception) {
+                drawFallbackHighlight(canvas, w, h)
             }
+        } else {
+            drawFallbackHighlight(canvas, w, h)
         }
     }
 
-
-
-    // Public API
-    fun setText(text: String) {
-        buttonText.text = text
+    private fun drawFallbackHighlight(canvas: Canvas, w: Float, h: Float) {
+        val cx = pressStartPosition.x + currentOffset.x
+        val cy = pressStartPosition.y + currentOffset.y
+        val gradientRadius = max(w, h) * 0.75f
+        shaderPaint.shader = RadialGradient(
+            cx, cy, gradientRadius,
+            Color.argb((highlightProgress * 80).toInt(), 255, 255, 255),
+            Color.TRANSPARENT,
+            Shader.TileMode.CLAMP
+        )
+        canvas.drawRoundRect(0f, 0f, w, h, 28f, 28f, shaderPaint)
     }
 
-    fun setTextColor(color: Int) {
-        buttonText.setTextColor(color)
-    }
+    fun setText(text: String) = buttonText.setText(text)
+    fun setTextColor(color: Int) = buttonText.setTextColor(color)
 
     override fun setOnClickListener(listener: OnClickListener?) {
         onClickListener = listener

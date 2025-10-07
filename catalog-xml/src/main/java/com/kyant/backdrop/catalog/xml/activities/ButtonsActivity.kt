@@ -1,111 +1,164 @@
-/*
-   Copyright 2025 Kyant
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-
 package com.kyant.backdrop.catalog.xml.activities
 
+import android.app.Activity
+import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.Gravity
 import android.widget.LinearLayout
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.graphics.toArgb
 import com.kyant.backdrop.catalog.xml.R
 import com.kyant.backdrop.catalog.xml.components.LiquidButton
+import androidx.core.graphics.toColorInt
+import com.kyant.backdrop.xml.extensions.frostedGlassOverlay
+import com.kyant.backdrop.xml.views.LiquidGlassContainer
+import androidx.core.net.toUri
+import androidx.core.graphics.drawable.toDrawable
 
-/**
- * Buttons activity - matches Compose ButtonsContent exactly
- * Displays 4 button variations:
- * 1. Transparent Liquid Button
- * 2. Surface Liquid Button (white surface with 30% opacity)
- * 3. Blue Tinted Liquid Button (#0088FF)
- * 4. Orange Tinted Liquid Button (#FF8D28)
- */
 class ButtonsActivity : AppCompatActivity() {
 
+    private var selectedWallpaperUri: Uri? = null
+
+    // Modern image picker launcher
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                val imageUri: Uri? = data?.data
+                imageUri?.let {
+                    selectedWallpaperUri = it
+                    applyImageAsWallpaper(it)
+                    recreateActivity()
+                }
+            }
+        }
+
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Set wallpaper background
-        window.decorView.setBackgroundResource(R.drawable.wallpaper)
-        
-        // Create main layout
+        supportActionBar?.hide()
+
+        // Restore wallpaper if already selected
+        val savedUriString = savedInstanceState?.getString("wallpaper_uri")
+        if (savedUriString != null) {
+            selectedWallpaperUri = savedUriString.toUri()
+
+            applyImageAsWallpaper(selectedWallpaperUri!!)
+        } else {
+            window.decorView.setBackgroundResource(R.drawable.wallpaper)
+        }
+
         val density = resources.displayMetrics.density
+
         val mainLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
+            gravity = Gravity.CENTER
             setPadding(
-                (32 * density).toInt(),
-                (48 * density).toInt(),
-                (32 * density).toInt(),
-                (48 * density).toInt()
+                (24 * density).toInt(),
+                (64 * density).toInt(),
+                (24 * density).toInt(),
+                (64 * density).toInt()
             )
         }
-        
-        // 1. Transparent Liquid Button
-        val button1 = LiquidButton(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+
+        fun buttonLayoutParams(): LinearLayout.LayoutParams {
+            return LinearLayout.LayoutParams(
+                (260 * density).toInt(),
+                (56 * density).toInt()
             ).apply {
-                bottomMargin = (16 * density).toInt()
+                gravity = Gravity.CENTER_HORIZONTAL
+                bottomMargin = (20 * density).toInt()
             }
-            setText("Transparent Liquid Button")
+        }
+
+        // Transparent Button
+        val button1 = LiquidButton(this).apply {
+            layoutParams = buttonLayoutParams()
+            setText("Transparent Button")
             setTextColor(Color.BLACK)
         }
         mainLayout.addView(button1)
-        
-        // 2. Surface Liquid Button (white surface with 30% opacity)
+
+        // Surface Button
         val button2 = LiquidButton(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = (16 * density).toInt()
-            }
-            setText("Surface Liquid Button")
+            layoutParams = buttonLayoutParams()
+            setText("Surface Button")
             setTextColor(Color.BLACK)
-            surfaceColor = Color.argb(77, 255, 255, 255) // White with 30% opacity (0.3 * 255 = 77)
+            surfaceColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.3f).toArgb()
         }
+
+
         mainLayout.addView(button2)
-        
-        // 3. Blue Tinted Liquid Button (#0088FF)
+
+        // Blue Button
         val button3 = LiquidButton(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = (16 * density).toInt()
-            }
-            setText("Tinted Liquid Button")
+            layoutParams = buttonLayoutParams()
+            setText("Blue Tinted Button")
             setTextColor(Color.WHITE)
-            tintColor = Color.parseColor("#0088FF")
+            tintColor = "#1E88E5".toColorInt()
         }
         mainLayout.addView(button3)
-        
-        // 4. Orange Tinted Liquid Button (#FF8D28)
+
+// Change Wallpaper Button
+        val pickImageButton = LiquidButton(this).apply {
+            layoutParams = buttonLayoutParams()
+            setText("Change Wallpaper")
+            setTextColor(Color.BLACK)
+//            tintColor = "#4CAF50".toColorInt()
+            setOnClickListener {
+                openGallery()
+            }
+        }
+        mainLayout.addView(pickImageButton)
+        // Orange Button
         val button4 = LiquidButton(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            setText("Tinted Liquid Button")
+            layoutParams = buttonLayoutParams()
+            setText("Orange Tinted Button")
             setTextColor(Color.WHITE)
-            tintColor = Color.parseColor("#FF8D28")
+            tintColor = "#FF9E3D".toColorInt()
         }
         mainLayout.addView(button4)
-        
+
+
+
         setContentView(mainLayout)
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        intent.type = "image/*"
+        pickImageLauncher.launch(intent)
+    }
+
+    private fun applyImageAsWallpaper(uri: Uri) {
+        val inputStream = contentResolver.openInputStream(uri)
+        val bitmap = BitmapFactory.decodeStream(inputStream)
+        inputStream?.close()
+        if (bitmap != null) {
+            window.decorView.background = bitmap.toDrawable(resources)
+        }
+    }
+
+    // --- Recreate activity cleanly to redraw UI ---
+    private fun recreateActivity() {
+        // Small delay so wallpaper sets before recreation
+        window.decorView.postDelayed({
+            recreate()
+        }, 200)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        selectedWallpaperUri?.let {
+            outState.putString("wallpaper_uri", it.toString())
+        }
     }
 }
