@@ -1,18 +1,3 @@
-/*
-   Copyright 2025 Kyant
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
 
 package com.kyant.backdrop.xml.views
 
@@ -23,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import com.kyant.backdrop.xml.R
 import com.kyant.backdrop.xml.effects.*
 import com.kyant.backdrop.xml.presets.LiquidGlassPresets
 
@@ -42,7 +28,7 @@ class LiquidGlassContainer @JvmOverloads constructor(
     
     init {
         // Add the liquid glass view as a background layer
-        addView(liquidGlassView, 0, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        addView(liquidGlassView, 0, LayoutParams(MATCH_PARENT, MATCH_PARENT))
         
         // Make the container draw its children in the correct order
         setWillNotDraw(false)
@@ -73,31 +59,31 @@ class LiquidGlassContainer @JvmOverloads constructor(
             }
             
             // Check for preset first
-            val preset = typedArray.getInt(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_glassPreset, 0)
+            val preset = typedArray.getInt(R.styleable.LiquidGlassContainer_glassPreset, 0)
             if (preset != 0) {
                 applyPreset(preset)
             } else {
                 // Individual effect configurations
                 
                 // Refraction effect
-                val refractionHeight = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_refractionHeight, 0f)
+                val refractionHeight = typedArray.getDimension(R.styleable.LiquidGlassContainer_refractionHeight, 0f)
                 if (refractionHeight > 0f) {
-                    val refractionAmount = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_refractionAmount, refractionHeight)
-                    val hasDepthEffect = typedArray.getBoolean(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_refractionDepthEffect, false)
+                    val refractionAmount = typedArray.getDimension(R.styleable.LiquidGlassContainer_refractionAmount, refractionHeight)
+                    val hasDepthEffect = typedArray.getBoolean(R.styleable.LiquidGlassContainer_refractionDepthEffect, false)
                     setRefractionEffect(RefractionEffect(refractionHeight, refractionAmount, hasDepthEffect))
                 }
                 
                 // Dispersion effect
-                val dispersionHeight = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_dispersionHeight, 0f)
+                val dispersionHeight = typedArray.getDimension(R.styleable.LiquidGlassContainer_dispersionHeight, 0f)
                 if (dispersionHeight > 0f) {
-                    val dispersionAmount = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_dispersionAmount, dispersionHeight)
+                    val dispersionAmount = typedArray.getDimension(R.styleable.LiquidGlassContainer_dispersionAmount, dispersionHeight)
                     setDispersionEffect(DispersionEffect(dispersionHeight, dispersionAmount))
                 }
                 
                 // Blur effect
-                val blurRadius = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_blurRadius, 0f)
+                val blurRadius = typedArray.getDimension(R.styleable.LiquidGlassContainer_blurRadius, 0f)
                 if (blurRadius > 0f) {
-                    val blurStyle = when (typedArray.getInt(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_blurStyle, 0)) {
+                    val blurStyle = when (typedArray.getInt(R.styleable.LiquidGlassContainer_blurStyle, 0)) {
                         1 -> BlurEffect.BlurStyle.SOLID
                         2 -> BlurEffect.BlurStyle.OUTER
                         3 -> BlurEffect.BlurStyle.INNER
@@ -107,31 +93,31 @@ class LiquidGlassContainer @JvmOverloads constructor(
                 }
                 
                 // Highlight effect
-                if (typedArray.hasValue(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_highlightAngle)) {
-                    val angle = typedArray.getFloat(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_highlightAngle, 0f)
-                    val falloff = typedArray.getFloat(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_highlightFalloff, 2f)
-                    val color = typedArray.getColor(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_highlightColor, android.graphics.Color.WHITE)
-                    val alpha = typedArray.getFloat(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_highlightAlpha, 0.3f)
+                if (typedArray.hasValue(R.styleable.LiquidGlassContainer_highlightAngle)) {
+                    val angle = typedArray.getFloat(R.styleable.LiquidGlassContainer_highlightAngle, 0f)
+                    val falloff = typedArray.getFloat(R.styleable.LiquidGlassContainer_highlightFalloff, 2f)
+                    val color = typedArray.getColor(R.styleable.LiquidGlassContainer_highlightColor, android.graphics.Color.WHITE)
+                    val alpha = typedArray.getFloat(R.styleable.LiquidGlassContainer_highlightAlpha, 0.3f)
                     setHighlightEffect(HighlightEffect(angle, falloff, color, alpha))
                 }
                 
                 // Shadow effect
-                if (typedArray.hasValue(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_shadowRadius)) {
-                    val offsetX = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_shadowOffsetX, 0f)
-                    val offsetY = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_shadowOffsetY, 0f)
-                    val radius = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_shadowRadius, 0f)
-                    val color = typedArray.getColor(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_shadowColor, android.graphics.Color.BLACK)
-                    val alpha = typedArray.getFloat(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_shadowAlpha, 0.25f)
+                if (typedArray.hasValue(R.styleable.LiquidGlassContainer_shadowRadius)) {
+                    val offsetX = typedArray.getDimension(R.styleable.LiquidGlassContainer_shadowOffsetX, 0f)
+                    val offsetY = typedArray.getDimension(R.styleable.LiquidGlassContainer_shadowOffsetY, 0f)
+                    val radius = typedArray.getDimension(R.styleable.LiquidGlassContainer_shadowRadius, 0f)
+                    val color = typedArray.getColor(R.styleable.LiquidGlassContainer_shadowColor, android.graphics.Color.BLACK)
+                    val alpha = typedArray.getFloat(R.styleable.LiquidGlassContainer_shadowAlpha, 0.25f)
                     setShadowEffect(ShadowEffect(offsetX, offsetY, radius, color, alpha))
                 }
                 
                 // Inner shadow effect
-                if (typedArray.hasValue(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_innerShadowRadius)) {
-                    val offsetX = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_innerShadowOffsetX, 0f)
-                    val offsetY = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_innerShadowOffsetY, 0f)
-                    val radius = typedArray.getDimension(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_innerShadowRadius, 0f)
-                    val color = typedArray.getColor(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_innerShadowColor, android.graphics.Color.BLACK)
-                    val alpha = typedArray.getFloat(com.kyant.backdrop.xml.R.styleable.LiquidGlassContainer_innerShadowAlpha, 0.2f)
+                if (typedArray.hasValue(R.styleable.LiquidGlassContainer_innerShadowRadius)) {
+                    val offsetX = typedArray.getDimension(R.styleable.LiquidGlassContainer_innerShadowOffsetX, 0f)
+                    val offsetY = typedArray.getDimension(R.styleable.LiquidGlassContainer_innerShadowOffsetY, 0f)
+                    val radius = typedArray.getDimension(R.styleable.LiquidGlassContainer_innerShadowRadius, 0f)
+                    val color = typedArray.getColor(R.styleable.LiquidGlassContainer_innerShadowColor, android.graphics.Color.BLACK)
+                    val alpha = typedArray.getFloat(R.styleable.LiquidGlassContainer_innerShadowAlpha, 0.2f)
                     setInnerShadowEffect(InnerShadowEffect(offsetX, offsetY, radius, color, alpha))
                 }
             }

@@ -1,19 +1,3 @@
-/*
-   Copyright 2025 Kyant
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-
 package com.kyant.backdrop.xml.shaders
 
 /**
@@ -102,6 +86,29 @@ half4 main(float2 coord) {
      * Dispersion shader creates chromatic aberration effects.
      * This simulates how light separates into different colors through glass.
      */
+
+
+    const val INNER_SHADOW_SHADER = """
+uniform shader content;
+uniform float2 size;
+uniform float4 cornerRadii;
+uniform float radius;  // Shadow radius
+uniform float alpha;   // Shadow opacity
+
+$ROUNDED_RECT_SDF
+
+half4 main(float2 coord) {
+    float2 halfSize = size * 0.5;
+    float2 centered = coord - halfSize;
+    float sd = sdRoundedRectangle(centered, halfSize, cornerRadii);
+
+    // Inverted SDF to fade toward inside
+    float shadowFactor = clamp(1.0 - sd / radius, 0.0, 1.0);
+    half4 base = content.eval(coord);
+    return base + half4(0.0, 0.0, 0.0, shadowFactor * alpha);
+}
+"""
+
     const val DISPERSION_SHADER = """
 uniform shader content;
 
@@ -163,22 +170,40 @@ uniform shader content;
 
 uniform float2 size;
 uniform float4 cornerRadii;
-uniform float angle;
-uniform float falloff;
+uniform float angle;   // Directional light angle
+uniform float falloff; // Exponent for highlight intensity
 
 $ROUNDED_RECT_SDF
+
+// Simple circular rim function
+float rimIntensity(float2 coord, float2 halfSize, float4 radii) {
+    float2 centered = coord - halfSize;
+    float sd = sdRoundedRectangle(centered, halfSize, radii);
+    float normalized = clamp(-sd / min(halfSize.x, halfSize.y), 0.0, 1.0);
+    return pow(normalized, 0.6); // rim softness
+}
 
 half4 main(float2 coord) {
     float2 halfSize = size * 0.5;
     float2 centeredCoord = coord - halfSize;
-    
+
     float4 maxGradRadius = float4(min(halfSize.x, halfSize.y));
     float4 gradRadius = min(cornerRadii * 1.5, maxGradRadius);
     float2 grad = gradSdRoundedRectangle(centeredCoord, halfSize, gradRadius);
-    float2 normal = float2(-cos(angle), -sin(angle));
-    float intensity = pow(abs(dot(normal, grad)), falloff);
-    return content.eval(coord) * intensity;
-}"""
+
+    // Directional highlight
+    float2 lightDir = float2(cos(angle), sin(angle));
+    float intensityDir = pow(clamp(dot(-lightDir, grad), 0.0, 1.0), falloff);
+
+    // Rim and corner highlights
+    float intensityRim = rimIntensity(coord, halfSize, cornerRadii);
+
+    half4 baseColor = content.eval(coord);
+    half4 finalColor = baseColor + half4(1.0) * (intensityDir * 0.4 + intensityRim * 0.3);
+    return clamp(finalColor, 0.0, 1.0);
+}
+"""
+
 
     /**
      * Ambient highlight shader for subtle environmental lighting.

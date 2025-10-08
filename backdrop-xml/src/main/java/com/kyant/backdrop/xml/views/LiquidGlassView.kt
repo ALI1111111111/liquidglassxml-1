@@ -1,19 +1,3 @@
-/*
-   Copyright 2025 Kyant
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-
 package com.kyant.backdrop.xml.views
 
 import android.content.Context
@@ -335,49 +319,50 @@ class LiquidGlassView @JvmOverloads constructor(
             backgroundCanvas = Canvas(backgroundBitmap!!)
         }
     }
-    
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        
-        val width = width.toFloat()
-        val height = height.toFloat()
-        
-        if (width <= 0f || height <= 0f) return
-        
-        // Capture background content
-        captureBackgroundContent()
-        
-        // Draw shadow effect
-        drawShadowEffect(canvas, width, height)
-        
-        // Draw main glass effect
-        drawGlassEffect(canvas, width, height)
-        
-        // Draw highlight effect
-        drawHighlightEffect(canvas, width, height)
-        
-        // Draw inner shadow effect
-        drawInnerShadowEffect(canvas, width, height)
-    }
-    
-    override fun dispatchDraw(canvas: Canvas) {
-        // Capture background content
+        val w = width.toFloat()
+        val h = height.toFloat()
+        if (w <= 0f || h <= 0f) return
+
+        // Capture background first
         captureBackgroundContent()
 
-        // Draw shadow effect
-        drawShadowEffect(canvas, width.toFloat(), height.toFloat())
+        // 1️⃣ Draw shadow outside clipping region
+        drawShadowEffect(canvas, w, h)
 
-        // Draw main glass effect
-        drawGlassEffect(canvas, width.toFloat(), height.toFloat())
-
+        // 2️⃣ Draw main glass inside rounded rect
+        val clipPath = createRoundedRectPath(w, h)
+        canvas.save()
+        canvas.clipPath(clipPath)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val bgBitmap = backgroundBitmap
+            if (bgBitmap != null) {
+                drawAdvancedGlassEffect(canvas, bgBitmap, w, h)
+            }
+        } else {
+            val bgBitmap = backgroundBitmap
+            if (bgBitmap != null) {
+                drawBasicGlassEffect(canvas, bgBitmap, w, h)
+            }
+        }
+        drawGlassEffect(canvas, w, h)
         // Draw highlight effect
         drawHighlightEffect(canvas, width.toFloat(), height.toFloat())
-
-        // Draw inner shadow effect
-        drawInnerShadowEffect(canvas, width.toFloat(), height.toFloat())
-
-        super.dispatchDraw(canvas)
+        drawInnerShadowEffect(canvas, w, h)
+        canvas.restore()
     }
+
+    override fun dispatchDraw(canvas: Canvas) {
+        super.dispatchDraw(canvas)
+
+        // 3️⃣ Draw highlights on top of children
+        val w = width.toFloat()
+        val h = height.toFloat()
+        drawHighlightEffect(canvas, w, h)
+    }
+
 
     private fun captureBackgroundContent() {
         val bgCanvas = backgroundCanvas ?: return
@@ -389,42 +374,56 @@ class LiquidGlassView @JvmOverloads constructor(
         // Draw background using XmlBackdrop
         xmlBackdrop.drawBackdrop(bgCanvas, width.toFloat(), height.toFloat())
     }
-    
+
     private fun drawShadowEffect(canvas: Canvas, width: Float, height: Float) {
         val shadow = shadowEffect ?: return
-        
-        // Create rounded rectangle path
-        val shadowPath = createRoundedRectPath(width, height)
-        
-        // Configure shadow paint
-        shadowPaint.color = shadow.color
-        shadowPaint.alpha = (shadow.alpha * 255).toInt()
-        shadowPaint.maskFilter = BlurMaskFilter(shadow.radius, BlurMaskFilter.Blur.NORMAL)
-        
-        // Draw shadow with offset
+        val path = createRoundedRectPath(width, height)
+
+        shadowPaint.apply {
+            color = shadow.color
+            alpha = (shadow.alpha * 255).toInt()
+            maskFilter = BlurMaskFilter(shadow.radius, BlurMaskFilter.Blur.NORMAL)
+        }
+
         canvas.save()
         canvas.translate(shadow.offsetX, shadow.offsetY)
-        canvas.drawPath(shadowPath, shadowPaint)
+        canvas.drawPath(path, shadowPaint)
         canvas.restore()
     }
-    
+
+
     private fun drawGlassEffect(canvas: Canvas, width: Float, height: Float) {
         val bgBitmap = backgroundBitmap ?: return
-        
-        // Create clipping path for rounded rectangle
         val clipPath = createRoundedRectPath(width, height)
+
         canvas.save()
         canvas.clipPath(clipPath)
-        
-        // Apply effects based on Android version
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            drawAdvancedGlassEffect(canvas, bgBitmap, width, height)
+            val refraction = refractionEffect
+            val shader = if (refraction != null && refraction.height > 0f) {
+                val s = obtainRuntimeShader("Refraction", LiquidGlassShaders.REFRACTION_SHADER)
+                s.setFloatUniform("size", width, height)
+                s.setFloatUniform("cornerRadii", getCornerRadiiArray())
+                s.setFloatUniform("refractionHeight", refraction.height)
+                s.setFloatUniform("refractionAmount", -refraction.amount)
+                s.setFloatUniform("depthEffect", if(refraction.hasDepthEffect) 1f else 0f)
+                s.setInputShader("content", BitmapShader(bgBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP))
+                s
+            } else {
+                BitmapShader(bgBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+            }
+
+            paint.shader = shader
+            canvas.drawRect(0f,0f,width,height,paint)
         } else {
+            // fallback for older versions
             drawBasicGlassEffect(canvas, bgBitmap, width, height)
         }
-        
+
         canvas.restore()
     }
+
     
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun drawAdvancedGlassEffect(canvas: Canvas, bgBitmap: Bitmap, width: Float, height: Float) {
@@ -527,35 +526,33 @@ class LiquidGlassView @JvmOverloads constructor(
             drawBasicHighlight(canvas, width, height, highlight)
         }
     }
-    
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun drawAdvancedHighlight(canvas: Canvas, width: Float, height: Float, highlight: HighlightEffect) {
-        // Implementation for advanced highlight using shaders
-        val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        val solidShader = BitmapShader(
-            Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).apply {
-                setPixel(0, 0, highlight.color)
-            },
-            Shader.TileMode.CLAMP, Shader.TileMode.CLAMP
-        )
-        
         val shader = obtainRuntimeShader("Highlight", LiquidGlassShaders.DEFAULT_HIGHLIGHT_SHADER)
         shader.setFloatUniform("size", width, height)
         shader.setFloatUniform("cornerRadii", getCornerRadiiArray())
         shader.setFloatUniform("angle", highlight.angle)
         shader.setFloatUniform("falloff", highlight.falloff)
+
+        // Solid color input shader for highlights
+        val solidShader = BitmapShader(
+            Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply { setPixel(0,0,highlight.color) },
+            Shader.TileMode.CLAMP, Shader.TileMode.CLAMP
+        )
         shader.setInputShader("content", solidShader)
-        
+
         highlightPaint.shader = shader
         highlightPaint.alpha = (highlight.alpha * 255).toInt()
-        
+
         val clipPath = createRoundedRectPath(width, height)
         canvas.save()
         canvas.clipPath(clipPath)
-        canvas.drawRect(0f, 0f, width, height, highlightPaint)
+        canvas.drawRect(0f,0f,width,height, highlightPaint)
         canvas.restore()
     }
-    
+
+
     private fun drawBasicHighlight(canvas: Canvas, width: Float, height: Float, highlight: HighlightEffect) {
         // Fallback highlight implementation
         val lightDirection = PointF(cos(highlight.angle), sin(highlight.angle))
@@ -588,30 +585,39 @@ class LiquidGlassView @JvmOverloads constructor(
         canvas.drawRect(0f, 0f, width, height, highlightPaint)
         canvas.restore()
     }
-    
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun drawInnerShadowEffect(canvas: Canvas, width: Float, height: Float) {
         val innerShadow = innerShadowEffect ?: return
-        
-        // Create mask for inner shadow
-        val shadowPath = createRoundedRectPath(width, height)
-        
-        // Configure inner shadow paint
-        val innerShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        innerShadowPaint.color = innerShadow.color
-        innerShadowPaint.alpha = (innerShadow.alpha * 255).toInt()
-        innerShadowPaint.maskFilter = BlurMaskFilter(innerShadow.radius, BlurMaskFilter.Blur.NORMAL)
-        
-        // Draw inner shadow using inverted mask technique
+        val shader = obtainRuntimeShader("InnerShadow", LiquidGlassShaders.INNER_SHADOW_SHADER)
+
+        shader.setFloatUniform("size", width, height)
+        shader.setFloatUniform("cornerRadii", getCornerRadiiArray())
+        shader.setFloatUniform("radius", innerShadow.radius)
+        shader.setFloatUniform("alpha", innerShadow.alpha)
+
+        val baseShader = BitmapShader(
+            Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).apply {
+                eraseColor(Color.TRANSPARENT)
+            },
+            Shader.TileMode.CLAMP, Shader.TileMode.CLAMP
+        )
+        shader.setInputShader("content", baseShader)
+
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            this.shader = shader
+        }
+
+        val path = createRoundedRectPath(width, height)
         canvas.save()
-        canvas.clipPath(shadowPath)
-        
-        // Draw shadow inset
-        canvas.translate(-innerShadow.offsetX, -innerShadow.offsetY)
-        canvas.drawPath(shadowPath, innerShadowPaint)
-        
+        canvas.clipPath(path)
+        canvas.drawRect(0f, 0f, width, height, paint)
         canvas.restore()
     }
-    
+
+
+
+
     private fun createRoundedRectPath(width: Float, height: Float): Path {
         val path = Path()
         val radii = floatArrayOf(

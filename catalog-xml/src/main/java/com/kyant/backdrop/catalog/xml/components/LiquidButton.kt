@@ -23,7 +23,21 @@ class LiquidButton @JvmOverloads constructor(
 
     // Main Glass Container
     private val liquidGlassContainer: LiquidGlassContainer = LiquidGlassContainer(context)
-    private val buttonText: TextView
+
+    // TextView in center
+    private val buttonText: TextView = TextView(context).apply {
+        textSize = 15f
+        setTextColor(Color.WHITE)
+        gravity = Gravity.CENTER
+        text = "Liquid Button"
+        typeface = Typeface.DEFAULT_BOLD
+        setPadding(
+            (16 * resources.displayMetrics.density).toInt(),
+            (12 * resources.displayMetrics.density).toInt(),
+            (16 * resources.displayMetrics.density).toInt(),
+            (12 * resources.displayMetrics.density).toInt()
+        )
+    }
     private val tintPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var offsetAnimation: ValueAnimator? = null
     private var pressStartPosition = PointF(0f, 0f)
@@ -68,21 +82,6 @@ class LiquidButton @JvmOverloads constructor(
 
     init {
 
-        // TextView in center
-        buttonText = TextView(context).apply {
-            textSize = 15f
-            setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
-            text = "Liquid Button"
-            typeface = Typeface.DEFAULT_BOLD
-            setPadding(
-                (16 * resources.displayMetrics.density).toInt(),
-                (12 * resources.displayMetrics.density).toInt(),
-                (16 * resources.displayMetrics.density).toInt(),
-                (12 * resources.displayMetrics.density).toInt()
-            )
-        }
-
         liquidGlassContainer.addView(
             buttonText,
             LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
@@ -102,7 +101,7 @@ class LiquidButton @JvmOverloads constructor(
         clipChildren = true
     }
 
-    // 🌊 Initialize the enhanced shader
+    //  Initialize the enhanced shader
     private fun setupShader() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             runtimeShader = RuntimeShader(
@@ -159,7 +158,7 @@ class LiquidButton @JvmOverloads constructor(
         }
     }
 
-    // 🕓 Animate shader time for live shimmer
+    //  Animate shader time for live shimmer
     private fun startTimeAnimation() {
         timeAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 4000
@@ -185,7 +184,7 @@ class LiquidButton @JvmOverloads constructor(
         updateSurfaceEffects()
     }
 
-    // 👆 Handle touch and press animations
+    //  Handle touch and press animations
     private fun setupInteraction() {
         setOnTouchListener { _, event ->
             if (!isInteractive) return@setOnTouchListener false
