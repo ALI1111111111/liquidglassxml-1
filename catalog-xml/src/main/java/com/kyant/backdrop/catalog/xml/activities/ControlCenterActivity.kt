@@ -88,7 +88,7 @@ class ControlCenterActivity : AppCompatActivity() {
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
             scaleType = ImageView.ScaleType.CENTER_CROP
-            setImageResource(R.drawable.system_home_screen_light)
+            setImageResource(R.drawable.wallpaper_light)
         }
         backdropLayer.addView(backgroundImage)
         
