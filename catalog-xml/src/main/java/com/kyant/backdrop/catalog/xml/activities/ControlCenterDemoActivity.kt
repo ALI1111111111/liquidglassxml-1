@@ -149,10 +149,8 @@ class ControlCenterDemoActivity : AppCompatActivity() {
                 hasDepthEffect = true
             ))
             
-            // Blur effect - matching Compose architecture
-            // Compose has: blur(8dp) on glass + blur(4dp) on background = 12dp total perceived blur
-            // With background blur enabled, glass cards only need 8dp
-            card.setBlurEffect(BlurEffect(8f * density))
+            // NO blur on glass tiles - Compose only has blur on backdrop layer (4dp), not on glass
+            // The backdrop blur is already applied via backdropLayer.setBackdropBlur()
             
             // Highlight effect - matching Compose highlight with 30% alpha for prominence
             card.setHighlightEffect(HighlightEffect.ambient(alpha = 0.3f))

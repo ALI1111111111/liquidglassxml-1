@@ -43,6 +43,7 @@ class SliderDemoActivity : AppCompatActivity() {
     private fun setupToolbar() {
         supportActionBar?.title = "Liquid Glass Sliders"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.hide()
     }
     
     private fun setupImagePicker() {

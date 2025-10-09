@@ -536,9 +536,6 @@ class LiquidGlassView @JvmOverloads constructor(
             paint.colorFilter = createColorMatrixColorFilter(it)
         }
         
-        // Note: Blur is applied via RuntimeShader in drawGlassEffect(), not here
-        // Paint.setRenderEffect() doesn't exist - RenderEffect is for Views only
-        
         // Draw the glass effect
         canvas.drawRect(0f, 0f, width, height, paint)
         

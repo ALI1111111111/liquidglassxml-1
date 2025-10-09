@@ -73,7 +73,7 @@
                             android:layout_height="32dp"
                             android:layout_gravity="center"
                             android:src="@drawable/wifi_48px"
-                            android:tint="@android:color/white" />
+                            app:tint="@android:color/white" />
                     </FrameLayout>
 
                     <!-- Bluetooth Button (Top Right) -->
@@ -93,7 +93,7 @@
                             android:layout_height="32dp"
                             android:layout_gravity="center"
                             android:src="@drawable/bluetooth_48px"
-                            android:tint="@android:color/white" />
+                            app:tint="@android:color/white" />
                     </FrameLayout>
 
                     <!-- Airplane Button (Bottom Left) -->
@@ -113,7 +113,7 @@
                             android:layout_height="32dp"
                             android:layout_gravity="center"
                             android:src="@drawable/flight_40px"
-                            android:tint="@android:color/white" />
+                            app:tint="@android:color/white" />
                     </FrameLayout>
 
                     <!-- Empty slot (Bottom Right) -->

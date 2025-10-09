@@ -260,10 +260,9 @@ class ControlCenterActivity : AppCompatActivity() {
             // Effects matching Compose exactly:
             // - Vibrancy (saturation 1.5x) is now default in library
             // - Refraction: 24dp height, 48dp amount with depth effect
-            // - Blur: 8dp on glass + 4dp on background = 12dp total (matching Compose)
+            // - NO blur on glass tiles (Compose only has blur on backdrop layer, not on glass)
             // - Highlight: top-left angle with 30% alpha (default) for prominence
             setRefractionEffect(RefractionEffect(24f * density, 48f * density, true))
-            setBlurEffect(BlurEffect(8f * density))
             setHighlightEffect(HighlightEffect.topLeft(falloff = 2f)) // Uses default alpha = 0.3f
         }
     }

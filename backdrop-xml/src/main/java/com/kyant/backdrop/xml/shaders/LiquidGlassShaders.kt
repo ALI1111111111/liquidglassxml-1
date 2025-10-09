@@ -46,6 +46,7 @@ float2 gradSdRoundedRectangle(float2 coord, float2 halfSize, float4 radii) {
     /**
      * Refraction shader creates the liquid glass distortion effect.
      * This shader bends light as it passes through the glass surface.
+     * Matches the original Compose implementation EXACTLY.
      */
     const val REFRACTION_SHADER = """
 uniform shader content;
@@ -66,15 +67,20 @@ half4 main(float2 coord) {
     float2 halfSize = size * 0.5;
     float2 centeredCoord = coord - halfSize;
     float sd = sdRoundedRectangle(centeredCoord, halfSize, cornerRadii);
+    
+    // If deep inside (beyond refractionHeight from edge), return pure content
     if (-sd >= refractionHeight) {
         return content.eval(coord);
     }
+    
+    // Clamp sd to inside only
     sd = min(sd, 0.0);
     
     float4 maxGradRadius = float4(min(halfSize.x, halfSize.y));
     float4 gradRadius = min(cornerRadii * 1.5, maxGradRadius);
     float2 normal = gradSdRoundedRectangle(centeredCoord, halfSize, gradRadius);
     
+    // Calculate refraction distance (stronger at edge, weaker toward center)
     float refractedDistance = circleMap(1.0 - -sd / refractionHeight) * refractionAmount;
 
     float2 refractedDirection = normalize(normal + depthEffect * normalize(centeredCoord));
