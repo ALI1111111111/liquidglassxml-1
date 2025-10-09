@@ -88,7 +88,7 @@ class ControlCenterActivity : AppCompatActivity() {
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
             scaleType = ImageView.ScaleType.CENTER_CROP
-            setImageResource(R.drawable.wallpaper_light)
+            setImageResource(R.drawable.system_home_screen_light)
         }
         backdropLayer.addView(backgroundImage)
         
@@ -209,7 +209,7 @@ class ControlCenterActivity : AppCompatActivity() {
         // Apply blur and dim DIRECTLY to LayerBackdropView (matching Compose architecture)
         // Compose: Image.layerBackdrop().then(modifier.graphicsLayer { renderEffect = blur })
         // The blur is applied to the captured layer, so glass cards read BLURRED backdrop
-        val blurRadius = 4f * density * progress // Compose uses blur(4.dp) on background
+        val blurRadius = 0f * density * progress // TESTING: Set to 0 to disable blur
         val dimAlpha = 0.4f * progress
         backdropLayer.setBackdropBlur(blurRadius, dimAlpha)
         
