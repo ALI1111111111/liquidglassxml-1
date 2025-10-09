@@ -47,6 +47,9 @@ class LiquidSlider @JvmOverloads constructor(
     private var isDragging = false
     private var dragStartX = 0f
     
+    // Backdrop layer reference for real-time updates
+    private var backdropLayerCallback: (() -> Unit)? = null
+    
     // Visual properties - matching Compose API
     var tintColor = Color.TRANSPARENT
         set(value) {
@@ -71,11 +74,12 @@ class LiquidSlider @JvmOverloads constructor(
         // Create thumb container with strong glass effect
         thumbContainer = LiquidGlassContainer(context)
         
-        // Create thumb view - transparent to show glass effects
+        // Create thumb view - NO background color!
+        // The white surface will be drawn by LiquidGlassContainer's surface tint
+        // This allows glass effects to show through when the surface fades
         thumbView = View(context).apply {
-            // Use semi-transparent white tint instead of solid background
-            // This allows the backdrop and refraction effects to be visible
-            setBackgroundColor(Color.argb(25, 255, 255, 255))
+            // No background - glass effects render directly
+            setBackgroundColor(Color.TRANSPARENT)
         }
         
         // Setup hierarchy
@@ -118,7 +122,8 @@ class LiquidSlider @JvmOverloads constructor(
         // Thumb effects - strong dynamic glass effect exactly like Compose version
         // Compose uses: blur(8f.dp * (1f - progress)), refractionWithDispersion(6f.dp * progress, height/2 * progress)
         // For static state, we use the full effect values
-        thumbContainer.setCornerRadius(16f * density)
+        // INCREASED thumb size to 48dp, so corner radius is 24dp (half)
+        thumbContainer.setCornerRadius(24f * density)
         
         // Vibrancy effect - enhances the backdrop colors
         thumbContainer.setColorFilterEffect(ColorFilterEffect.vibrant())
@@ -127,17 +132,22 @@ class LiquidSlider @JvmOverloads constructor(
         thumbContainer.setBlurEffect(BlurEffect(8f * density))
         
         // Refraction effect - matching Compose refraction(6f.dp.toPx(), height/2)
+        // With 48dp thumb, height/2 = 24dp
         thumbContainer.setRefractionEffect(RefractionEffect(
-            height = 6f * density,
-            amount = 16f * density,  // Approximately height/2 of 32dp thumb
+            height = 8f * density,
+            amount = 24f * density,  // Approximately height/2 of 48dp thumb
             hasDepthEffect = true
         ))
         
         // Dispersion effect - matching Compose refractionWithDispersion
         thumbContainer.setDispersionEffect(DispersionEffect(
-            height = 6f * density,
-            amount = 8f * density
+            height = 8f * density,
+            amount = 12f * density
         ))
+        
+        // Surface tint - starts as WHITE (fully opaque), will fade during press
+        // Matching Compose: onDrawSurface = { drawRect(Color.White.copy(alpha = 1f - progress)) }
+        thumbContainer.setSurfaceColor(Color.WHITE)
         
         // Highlight effect - ambient lighting
         thumbContainer.setHighlightEffect(HighlightEffect.ambient(alpha = 0.15f))
@@ -168,6 +178,8 @@ class LiquidSlider @JvmOverloads constructor(
                 MotionEvent.ACTION_MOVE -> {
                     if (isDragging) {
                         updateValueFromPosition(event.x)
+                        // Force backdrop update during drag for real-time glass effects
+                        backdropLayerCallback?.invoke()
                     }
                     true
                 }
@@ -213,11 +225,16 @@ class LiquidSlider @JvmOverloads constructor(
                 
                 // Animate glass effects based on press state
                 // Compose does: blur(8f.dp * (1f - progress)) and refraction(6f.dp * progress, height/2 * progress)
+                // AND onDrawSurface = { drawRect(Color.White.copy(alpha = 1f - progress)) }
+                // With 48dp thumb: height/2 = 24dp
                 if (pressed) {
-                    // When pressing: reduce blur, increase refraction (more glass effect)
+                    // When pressing: fade white surface (reveal glass), reduce blur, increase refraction
+                    val surfaceAlpha = ((1f - progress) * 255).toInt().coerceIn(0, 255)
+                    thumbContainer.setSurfaceColor(Color.argb(surfaceAlpha, 255, 255, 255))
+                    
                     val blurRadius = (8f * density * (1f - progress)).coerceAtLeast(0.1f)  // 8dp -> 0.1dp (avoid 0)
-                    val refractionHeight = 6f * density * progress    // 0dp -> 6dp
-                    val refractionAmount = 16f * density * progress   // 0dp -> 16dp
+                    val refractionHeight = 8f * density * progress    // 0dp -> 8dp
+                    val refractionAmount = 24f * density * progress   // 0dp -> 24dp
                     
                     thumbContainer.setBlurEffect(BlurEffect(blurRadius))
                     thumbContainer.setRefractionEffect(RefractionEffect(
@@ -232,10 +249,13 @@ class LiquidSlider @JvmOverloads constructor(
                         alpha = progress * 0.1f
                     ))
                 } else {
-                    // When releasing: restore blur, reduce refraction
+                    // When releasing: restore white surface, restore blur, reduce refraction
+                    val surfaceAlpha = (progress * 255).toInt().coerceIn(0, 255)
+                    thumbContainer.setSurfaceColor(Color.argb(surfaceAlpha, 255, 255, 255))
+                    
                     val blurRadius = (8f * density * progress).coerceAtLeast(0.1f)  // 0.1dp -> 8dp (avoid 0)
-                    val refractionHeight = 6f * density * (1f - progress)  // 6dp -> 0dp
-                    val refractionAmount = 16f * density * (1f - progress) // 16dp -> 0dp
+                    val refractionHeight = 8f * density * (1f - progress)  // 8dp -> 0dp
+                    val refractionAmount = 24f * density * (1f - progress) // 24dp -> 0dp
                     
                     thumbContainer.setBlurEffect(BlurEffect(blurRadius))
                     thumbContainer.setRefractionEffect(RefractionEffect(
@@ -267,8 +287,8 @@ class LiquidSlider @JvmOverloads constructor(
             MeasureSpec.makeMeasureSpec(trackHeight, MeasureSpec.EXACTLY)
         )
         
-        // Measure thumb container
-        val thumbSize = (32 * resources.displayMetrics.density).toInt()
+        // Measure thumb container - INCREASED SIZE from 32dp to 48dp for better visibility
+        val thumbSize = (48 * resources.displayMetrics.density).toInt()
         thumbContainer.measure(
             MeasureSpec.makeMeasureSpec(thumbSize, MeasureSpec.EXACTLY),
             MeasureSpec.makeMeasureSpec(thumbSize, MeasureSpec.EXACTLY)
@@ -338,6 +358,8 @@ class LiquidSlider @JvmOverloads constructor(
     fun setBackdropSource(backdropView: com.kyant.backdrop.xml.backdrop.LayerBackdropView) {
         val backdrop = backdropView.getBackdrop()
         setBackdropSource(backdrop)
+        // Also register backdrop invalidation callback for real-time updates during drag
+        backdropLayerCallback = { backdropView.invalidateLayer() }
     }
     
     /**

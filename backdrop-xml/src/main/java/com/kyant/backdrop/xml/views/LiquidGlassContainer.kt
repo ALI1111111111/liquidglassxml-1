@@ -121,6 +121,12 @@ class LiquidGlassContainer @JvmOverloads constructor(
                     setInnerShadowEffect(InnerShadowEffect(offsetX, offsetY, radius, color, alpha))
                 }
             }
+            
+            // Apply DEFAULT vibrancy effect (saturation 1.5x) to the underlying LiquidGlassView
+            // This matches Compose version where vibrancy() is automatically applied
+            // Users can override this by calling setColorFilterEffect() after initialization
+            liquidGlassView.setColorFilterEffect(ColorFilterEffect.vibrant())
+            
         } finally {
             typedArray.recycle()
         }
@@ -230,6 +236,14 @@ class LiquidGlassContainer @JvmOverloads constructor(
      */
     fun setColorFilterEffect(effect: ColorFilterEffect?) {
         liquidGlassView.setColorFilterEffect(effect)
+    }
+    
+    /**
+     * Sets the surface tint color drawn over the backdrop.
+     * @param color ARGB color value (e.g., Color.argb(13, 0, 0, 0) for Black 5%)
+     */
+    fun setSurfaceColor(color: Int) {
+        liquidGlassView.setSurfaceColor(color)
     }
     
     /**

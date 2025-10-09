@@ -5,7 +5,9 @@
     android:layout_height="match_parent"
     android:id="@+id/rootLayout">
 
-    <!-- LayerBackdropView captures background -->
+    <!-- LayerBackdropView - Blur applied HERE (matching Compose architecture) -->
+    <!-- Compose: Image.layerBackdrop(backdrop).then(modifier with blur) -->
+    <!-- XML: LayerBackdropView.setBackdropBlur() -->
     <com.kyant.backdrop.xml.backdrop.LayerBackdropView
         android:id="@+id/backdropLayer"
         android:layout_width="match_parent"

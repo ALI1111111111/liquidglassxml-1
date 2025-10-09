@@ -65,6 +65,9 @@ class LiquidButton @JvmOverloads constructor(
     private var time = 0f
 
     var isInteractive = true
+    
+    // Backdrop layer reference for real-time updates
+    private var backdropLayerCallback: (() -> Unit)? = null
 
     var tintColor = Color.TRANSPARENT
         set(value) {
@@ -89,9 +92,12 @@ class LiquidButton @JvmOverloads constructor(
     
     /**
      * Sets the backdrop source from a LayerBackdropView
+     * This also enables real-time backdrop updates during touch interactions
      */
     fun setBackdropSource(backdropView: com.kyant.backdrop.xml.backdrop.LayerBackdropView) {
         liquidGlassContainer.setBackgroundSource(backdropView.getBackdrop())
+        // Register backdrop invalidation callback for real-time updates during press
+        backdropLayerCallback = { backdropView.invalidateLayer() }
     }
 
     init {
@@ -207,23 +213,31 @@ class LiquidButton @JvmOverloads constructor(
                 MotionEvent.ACTION_DOWN -> {
                     pressStartPosition.set(event.x, event.y)
                     animatePress(true)
+                    // Force backdrop update on press for real-time glass effects
+                    backdropLayerCallback?.invoke()
                     true
                 }
 
                 MotionEvent.ACTION_MOVE -> {
                     val dragAmount = PointF(event.x - pressStartPosition.x, event.y - pressStartPosition.y)
                     animateOffset(dragAmount)
+                    // Force backdrop update during move
+                    backdropLayerCallback?.invoke()
                     true
                 }
 
                 MotionEvent.ACTION_UP -> {
                     animatePress(false)
                     performClick()
+                    // Force backdrop update on release
+                    backdropLayerCallback?.invoke()
                     true
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
                     animatePress(false)
+                    // Force backdrop update on cancel
+                    backdropLayerCallback?.invoke()
                     true
                 }
 

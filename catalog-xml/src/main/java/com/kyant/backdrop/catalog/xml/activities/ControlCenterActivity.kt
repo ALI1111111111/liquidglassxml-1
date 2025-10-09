@@ -15,6 +15,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +23,7 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.core.view.setPadding
 import com.kyant.backdrop.catalog.xml.R
+import com.kyant.backdrop.xml.backdrop.LayerBackdropView
 import com.kyant.backdrop.xml.effects.BlurEffect
 import com.kyant.backdrop.xml.effects.ColorFilterEffect
 import com.kyant.backdrop.xml.effects.HighlightEffect
@@ -41,7 +43,8 @@ class ControlCenterActivity : AppCompatActivity() {
 
     private val tileViews = mutableListOf<LiquidGlassContainer>()
     private lateinit var mainLayout: LinearLayout
-    private lateinit var backgroundView: View
+    private lateinit var backdropLayer: LayerBackdropView
+    private lateinit var backgroundImage: ImageView
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -59,15 +62,6 @@ class ControlCenterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
 
-        // Restore wallpaper
-        val savedUriString = savedInstanceState?.getString("wallpaper_uri")
-        if (savedUriString != null) {
-            selectedWallpaperUri = savedUriString.toUri()
-            applyImageAsWallpaper(selectedWallpaperUri!!)
-        } else {
-            window.decorView.setBackgroundResource(R.drawable.wallpaper_light)
-        }
-
         val density = resources.displayMetrics.density
         val itemSize = (68 * density).toInt()
         val itemSpacing = (16 * density).toInt()
@@ -75,14 +69,44 @@ class ControlCenterActivity : AppCompatActivity() {
         val cornerRadius = itemSize / 2f
 
         // Root layout
+        val rootLayout = FrameLayout(this)
+        
+        // LayerBackdropView - Blur will be applied HERE (matching Compose architecture)
+        // Compose: Image.layerBackdrop(backdrop).then(modifier with blur)
+        // XML: LayerBackdropView with setBackdropBlur()
+        backdropLayer = LayerBackdropView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+        
+        // Background image - will be blurred by LayerBackdropView
+        backgroundImage = ImageView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            setImageResource(R.drawable.wallpaper_light)
+        }
+        backdropLayer.addView(backgroundImage)
+        
+        // Restore wallpaper if saved
+        val savedUriString = savedInstanceState?.getString("wallpaper_uri")
+        if (savedUriString != null) {
+            selectedWallpaperUri = savedUriString.toUri()
+            applyImageAsWallpaper(selectedWallpaperUri!!)
+        }
+
+        // Main panel layout (glass cards)
         mainLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(itemSpacing, (80 * density).toInt(), itemSpacing, itemSpacing)
-        }
-
-        backgroundView = View(this).apply {
-            setBackgroundColor(Color.BLACK)
-            alpha = 0f
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            )
         }
 
         // Function to create animated tile with swipe & enter animation
@@ -125,6 +149,7 @@ class ControlCenterActivity : AppCompatActivity() {
         mainLayout.addView(createSpacer(itemSpacing, itemSpacing))
 
 
+
         // Row 3
         val row3 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         row3.addView(createAnimatedTile(itemTwoSpanSize, itemTwoSpanSize))
@@ -151,9 +176,8 @@ class ControlCenterActivity : AppCompatActivity() {
         }
         mainLayout.addView(changeWallpaperBtn)
 
-        // Wrap background and layout
-        val rootLayout = FrameLayout(this)
-        rootLayout.addView(backgroundView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        // Assemble view hierarchy
+        rootLayout.addView(backdropLayer)
         rootLayout.addView(mainLayout)
         setContentView(rootLayout)
 
@@ -180,18 +204,29 @@ class ControlCenterActivity : AppCompatActivity() {
 
 
     private fun updateTilesWithProgress(progress: Float) {
-        backgroundView.alpha = 0.4f * progress
+        val density = resources.displayMetrics.density
+        
+        // Apply blur and dim DIRECTLY to LayerBackdropView (matching Compose architecture)
+        // Compose: Image.layerBackdrop().then(modifier.graphicsLayer { renderEffect = blur })
+        // The blur is applied to the captured layer, so glass cards read BLURRED backdrop
+        val blurRadius = 4f * density * progress // Compose uses blur(4.dp) on background
+        val dimAlpha = 0.4f * progress
+        backdropLayer.setBackdropBlur(blurRadius, dimAlpha)
+        
+        // Update tiles with proper Compose-matching values
         tileViews.forEach { tile ->
             tile.alpha = progress
             tile.scaleX = 0.9f + 0.1f * progress
             tile.scaleY = 0.9f + 0.1f * progress
 
-            // Clamp blur to at least 0.1f to avoid IllegalArgumentException
-            val blurRadius = max(0.1f, 16f * progress)
-            tile.setBlurEffect(BlurEffect(blurRadius))
-
-            tile.setRefractionEffect(RefractionEffect(48f * progress, 96f * progress, true))
+            // Animate refraction matching Compose: 24dp * progress, 48dp * progress
+            val refractionHeight = 24f * density * progress
+            val refractionAmount = 48f * density * progress
+            tile.setRefractionEffect(RefractionEffect(refractionHeight, refractionAmount, true))
         }
+        
+        // Invalidate backdrop layer for real-time updates
+        backdropLayer.invalidateLayer()
     }
 
 
@@ -202,7 +237,11 @@ class ControlCenterActivity : AppCompatActivity() {
                 tile.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(250).start()
             }, (index * 80).toLong())
         }
-        handler.postDelayed({ backgroundView.animate().alpha(0.4f).setDuration(250).start() }, 0)
+        
+        // Apply initial blur and effects
+        handler.postDelayed({ 
+            updateTilesWithProgress(1f)
+        }, 0)
         progress = 1f
     }
 
@@ -211,11 +250,21 @@ class ControlCenterActivity : AppCompatActivity() {
         return LiquidGlassContainer(this).apply {
             layoutParams = LinearLayout.LayoutParams(width, height)
             setCornerRadius(cornerRadius)
-            setBlurEffect(BlurEffect(16 * density))
-            setRefractionEffect(RefractionEffect(48 * density, 96 * density, true))
-            setHighlightEffect(HighlightEffect.topLeft(falloff = 1.8f))
-            setColorFilterEffect(ColorFilterEffect.vibrant())
-
+            
+            // Use new API - set backdrop source from LayerBackdropView
+            setBackgroundSource(backdropLayer)
+            
+            // NO surface tint - let glass be fully transparent to show backdrop
+            // Compose version doesn't use onDrawSurface, relies on pure glass effect
+            
+            // Effects matching Compose exactly:
+            // - Vibrancy (saturation 1.5x) is now default in library
+            // - Refraction: 24dp height, 48dp amount with depth effect
+            // - Blur: 8dp on glass + 4dp on background = 12dp total (matching Compose)
+            // - Highlight: top-left angle with 30% alpha (default) for prominence
+            setRefractionEffect(RefractionEffect(24f * density, 48f * density, true))
+            setBlurEffect(BlurEffect(8f * density))
+            setHighlightEffect(HighlightEffect.topLeft(falloff = 2f)) // Uses default alpha = 0.3f
         }
     }
 
@@ -232,7 +281,17 @@ class ControlCenterActivity : AppCompatActivity() {
         val inputStream = contentResolver.openInputStream(uri)
         val bitmap = BitmapFactory.decodeStream(inputStream)
         inputStream?.close()
-        if (bitmap != null) window.decorView.background = bitmap.toDrawable(resources)
+        
+        if (bitmap != null) {
+            val drawable = bitmap.toDrawable(resources)
+            
+            // Set wallpaper to the LayerBackdropView
+            // Blur will be applied by setBackdropBlur(), so glass cards read blurred version
+            backgroundImage.setImageDrawable(drawable)
+            
+            // Invalidate backdrop layer to update glass cards
+            backdropLayer.invalidateLayer()
+        }
     }
 
     private fun recreateActivity() {

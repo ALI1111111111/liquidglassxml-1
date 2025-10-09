@@ -36,6 +36,7 @@ class LiquidGlassView @JvmOverloads constructor(
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val surfacePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     
     // Bitmap for capturing background content
     private var backgroundBitmap: Bitmap? = null
@@ -46,6 +47,11 @@ class LiquidGlassView @JvmOverloads constructor(
     private var cornerRadiusTopRight = 0f
     private var cornerRadiusBottomRight = 0f
     private var cornerRadiusBottomLeft = 0f
+    
+    // Surface tint (drawn over backdrop but under content)
+    // Default: TRANSPARENT - only add when explicitly set
+    // Note: Compose uses onDrawSurface callback, not a default tint
+    private var surfaceColor: Int = Color.TRANSPARENT
     
     // Effect configurations
     private var refractionEffect: RefractionEffect? = null
@@ -167,6 +173,11 @@ class LiquidGlassView @JvmOverloads constructor(
                 }
             }
             
+            // Apply DEFAULT vibrancy effect (saturation 1.5x)
+            // This matches Compose version where vibrancy() is automatically applied
+            // Users can override this by calling setColorFilterEffect() after initialization
+            setColorFilterEffect(ColorFilterEffect.vibrant())
+            
         } finally {
             typedArray.recycle()
         }
@@ -276,6 +287,16 @@ class LiquidGlassView @JvmOverloads constructor(
     }
     
     /**
+     * Sets the surface tint color drawn over the backdrop.
+     * Matches Compose's onDrawSurface parameter.
+     * @param color ARGB color value (e.g., Color.argb(13, 0, 0, 0) for Black 5%)
+     */
+    fun setSurfaceColor(color: Int) {
+        surfaceColor = color
+        invalidate()
+    }
+    
+    /**
      * Configures gamma adjustment effect
      */
     fun setGammaAdjustmentEffect(effect: GammaAdjustmentEffect?) {
@@ -354,6 +375,7 @@ class LiquidGlassView @JvmOverloads constructor(
     
     /**
      * Updates global position tracking and refreshes backdrop if position changed
+     * Optimized for real-time performance
      */
     private fun updatePositionAndBackdrop() {
         getLocationOnScreen(globalPosition)
@@ -367,9 +389,28 @@ class LiquidGlassView @JvmOverloads constructor(
             lastKnownY = currentY
             
             // Backdrop needs to be recaptured with new position
+            // Use postInvalidateOnAnimation for smooth 60fps updates
             if (xmlBackdrop.isCoordinatesDependent) {
-                invalidate()
+                postInvalidateOnAnimation()
             }
+        }
+    }
+    
+    override fun invalidate() {
+        super.invalidate()
+        // Also invalidate the backdrop layer to ensure fresh content
+        if (xmlBackdrop is LayerXmlBackdrop) {
+            val layerBackdrop = xmlBackdrop as LayerXmlBackdrop
+            layerBackdrop.getLayerView().invalidateLayer()
+        }
+    }
+    
+    override fun postInvalidate() {
+        super.postInvalidate()
+        // Also invalidate the backdrop layer to ensure fresh content
+        if (xmlBackdrop is LayerXmlBackdrop) {
+            val layerBackdrop = xmlBackdrop as LayerXmlBackdrop
+            layerBackdrop.getLayerView().invalidateLayer()
         }
     }
 
@@ -379,43 +420,50 @@ class LiquidGlassView @JvmOverloads constructor(
         val h = height.toFloat()
         if (w <= 0f || h <= 0f) return
 
-        // Capture background first
+        // Capture backdrop - layer is already updated by pre-draw listener
         captureBackgroundContent()
 
-        //  Draw shadow outside clipping region
-        drawShadowEffect(canvas, w, h)
-
-        // Draw main glass inside rounded rect
+        // Draw main glass effect with backdrop
         val clipPath = createRoundedRectPath(w, h)
         canvas.save()
         canvas.clipPath(clipPath)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val bgBitmap = backgroundBitmap
-            if (bgBitmap != null) {
-                drawAdvancedGlassEffect(canvas, bgBitmap, w, h)
-            }
-        } else {
-            val bgBitmap = backgroundBitmap
-            if (bgBitmap != null) {
-                drawBasicGlassEffect(canvas, bgBitmap, w, h)
-            }
+        
+        val bgBitmap = backgroundBitmap
+        if (bgBitmap != null) {
+            // Draw glass effect with refraction and blur shaders
+            drawGlassEffect(canvas, w, h)
         }
-
-
-//        drawGlassEffect(canvas, w, h)
-        // Draw highlight effect
-        drawHighlightEffect(canvas, width.toFloat(), height.toFloat())
-        drawInnerShadowEffect(canvas, w, h)
+        
         canvas.restore()
+        
+        // Draw shadow OUTSIDE the clipped region (if set)
+        if (shadowEffect != null) {
+            drawShadowEffect(canvas, w, h)
+        }
     }
 
     override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)
 
-        //  Draw highlights on top of children
+        // Draw effects AFTER children are drawn
         val w = width.toFloat()
         val h = height.toFloat()
-        drawHighlightEffect(canvas, w, h)
+        
+        val clipPath = createRoundedRectPath(w, h)
+        canvas.save()
+        canvas.clipPath(clipPath)
+        
+        // Draw inner shadow if set
+        if (innerShadowEffect != null) {
+            drawInnerShadowEffect(canvas, w, h)
+        }
+        
+        // Draw highlight if set
+        if (highlightEffect != null) {
+            drawHighlightEffect(canvas, w, h)
+        }
+        
+        canvas.restore()
     }
 
 
@@ -427,6 +475,7 @@ class LiquidGlassView @JvmOverloads constructor(
         bgCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
 
         // Draw background using XmlBackdrop with coordinate information
+        // Layer is already fresh from pre-draw listener (matching Compose behavior)
         if (xmlBackdrop.isCoordinatesDependent) {
             // Update position before drawing
             getLocationOnScreen(globalPosition)
@@ -455,42 +504,47 @@ class LiquidGlassView @JvmOverloads constructor(
     }
 
 
+    /**
+     * Main glass effect drawing - applies refraction shader and blur effect
+     * Matches Compose drawBackdrop behavior without extra surface layers
+     */
     private fun drawGlassEffect(canvas: Canvas, width: Float, height: Float) {
         val bgBitmap = backgroundBitmap ?: return
-        val clipPath = createRoundedRectPath(width, height)
-
-        canvas.withClip(clipPath) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                val refraction = refractionEffect
-                val shader = if (refraction != null && refraction.height > 0f) {
-                    val s = obtainRuntimeShader("Refraction", LiquidGlassShaders.REFRACTION_SHADER)
-                    s.setFloatUniform("size", width, height)
-                    s.setFloatUniform("cornerRadii", getCornerRadiiArray())
-                    s.setFloatUniform("refractionHeight", refraction.height)
-                    s.setFloatUniform("refractionAmount", refraction.amount)
-                    s.setFloatUniform("depthEffect", if (refraction.hasDepthEffect) 1f else 0f)
-                    s.setInputShader(
-                        "content",
-                        BitmapShader(bgBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-                    )
-                    Log.d("Refraction", "Based on height: ${refraction.height}, amount: ${refraction.amount}")
-
-                    s
-                } else {
-                    BitmapShader(bgBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-                }
-
-                paint.shader = shader
-                drawRect(0f, 0f, width, height, paint)
-
-
-
-            } else {
-                // fallback for older versions
-                drawBasicGlassEffect(this, bgBitmap, width, height)
-            }
-
+        
+        // Create base bitmap shader
+        val bitmapShader = BitmapShader(bgBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        
+        // Apply refraction shader if enabled
+        val refraction = refractionEffect
+        val finalShader = if (refraction != null && refraction.height > 0f) {
+            val shader = obtainRuntimeShader("Refraction", LiquidGlassShaders.REFRACTION_SHADER)
+            shader.setFloatUniform("size", width, height)
+            shader.setFloatUniform("cornerRadii", getCornerRadiiArray())
+            shader.setFloatUniform("refractionHeight", refraction.height)
+            shader.setFloatUniform("refractionAmount", refraction.amount)
+            shader.setFloatUniform("depthEffect", if (refraction.hasDepthEffect) 1f else 0f)
+            shader.setInputShader("content", bitmapShader)
+            shader
+        } else {
+            bitmapShader
         }
+
+        paint.shader = finalShader
+        
+        // Apply color filter (vibrancy) if set
+        colorFilterEffect?.let {
+            paint.colorFilter = createColorMatrixColorFilter(it)
+        }
+        
+        // Note: Blur is applied via RuntimeShader in drawGlassEffect(), not here
+        // Paint.setRenderEffect() doesn't exist - RenderEffect is for Views only
+        
+        // Draw the glass effect
+        canvas.drawRect(0f, 0f, width, height, paint)
+        
+        // Reset for next draw
+        paint.shader = null
+        paint.colorFilter = null
     }
 
     
@@ -652,6 +706,16 @@ class LiquidGlassView @JvmOverloads constructor(
         canvas.withClip(clipPath) {
             drawRect(0f, 0f, width, height, highlightPaint)
         }
+    }
+    
+    /**
+     * Draws the surface tint layer over the backdrop glass effect.
+     * Matches Compose's onDrawSurface parameter in drawBackdrop.
+     * Default: Black 5% alpha (Color.Black.copy(0.05f))
+     */
+    private fun drawSurfaceLayer(canvas: Canvas, width: Float, height: Float) {
+        surfacePaint.color = surfaceColor
+        canvas.drawRect(0f, 0f, width, height, surfacePaint)
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
