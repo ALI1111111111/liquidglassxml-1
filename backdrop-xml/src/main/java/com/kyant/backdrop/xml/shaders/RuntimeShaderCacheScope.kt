@@ -1,6 +1,7 @@
 package com.kyant.backdrop.xml.shaders
 
 import android.graphics.RuntimeShader
+import android.graphics.Shader
 import android.os.Build
 import androidx.annotation.RequiresApi
 

@@ -39,12 +39,15 @@ class MainActivity : AppCompatActivity() {
         return listOf(
             // Testing section
             CatalogItem.Header("Testing"),
-            CatalogItem.Demo("Liquid Test", "Test liquid glass effects visibility"),
+            CatalogItem.Demo("Liquid Test", "Test liquid glass effects visibility with LayerBackdrop"),
             
             // Liquid glass components section
             CatalogItem.Header("Liquid glass components"),
-            CatalogItem.Demo("Buttons", "Liquid glass buttons with different styles"),
-            CatalogItem.Demo("Slider", "Liquid glass sliders with different styles"),
+            CatalogItem.Demo("Buttons Demo", "New liquid glass buttons with LayerBackdrop"),
+            CatalogItem.Demo("Slider Demo", "New liquid glass sliders with LayerBackdrop"),
+            CatalogItem.Demo("Control Center Demo", "iOS-style control center with LayerBackdrop"),
+            CatalogItem.Demo("Buttons (Old)", "Original liquid glass buttons"),
+            CatalogItem.Demo("Slider (Old)", "Original liquid glass sliders"),
             CatalogItem.Demo("Bottom tabs", "Glass bottom tab bar with selection"),
 //            CatalogItem.Demo("Dialog", "Glass dialog with backdrop effects"),
             
@@ -65,10 +68,18 @@ class MainActivity : AppCompatActivity() {
     
     private fun navigateToDemo(item: CatalogItem.Demo) {
         val intent = when (item.title) {
+            // New demos with LayerBackdropView
+            "Buttons Demo" -> Intent(this, ButtonsDemoActivity::class.java)
+            "Slider Demo" -> Intent(this, SliderDemoActivity::class.java)
+            "Control Center Demo" -> Intent(this, ControlCenterDemoActivity::class.java)
+            
+            // Testing
             "Liquid Test" -> Intent(this, LiquidTestActivity::class.java)
+            
+            // Original demos
+            "Buttons (Old)" -> Intent(this, ButtonsActivity::class.java)
+            "Slider (Old)" -> Intent(this, com.kyant.backdrop.catalog.xml.SliderActivity::class.java)
             "Glass playground" -> Intent(this, GlassPlaygroundActivity::class.java)
-            "Buttons" -> Intent(this, ButtonsActivity::class.java)
-            "Slider" -> Intent(this, com.kyant.backdrop.catalog.xml.SliderActivity::class.java)
             "Bottom tabs" -> Intent(this, BottomTabsActivity::class.java)
 //            "Dialog" -> Intent(this, DialogActivity::class.java)
             "Lock screen" -> Intent(this, LockScreenActivity::class.java)

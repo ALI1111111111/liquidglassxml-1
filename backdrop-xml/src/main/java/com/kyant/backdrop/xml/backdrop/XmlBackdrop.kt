@@ -19,6 +19,16 @@ interface XmlBackdrop {
      * Draws the backdrop content to the provided canvas
      */
     fun drawBackdrop(canvas: Canvas, width: Float, height: Float)
+    
+    /**
+     * Draws the backdrop content with coordinate information for position-aware rendering
+     * @param glassViewX Global X position of the glass view
+     * @param glassViewY Global Y position of the glass view
+     */
+    fun drawBackdrop(canvas: Canvas, width: Float, height: Float, glassViewX: Int, glassViewY: Int) {
+        // Default implementation delegates to simple drawBackdrop
+        drawBackdrop(canvas, width, height)
+    }
 }
 
 /**
@@ -65,8 +75,26 @@ class ViewXmlBackdrop(
     
     override val isCoordinatesDependent: Boolean = true
     
+    private val sourcePosition = IntArray(2)
+    
     override fun drawBackdrop(canvas: Canvas, width: Float, height: Float) {
+        // Simple fallback - just draw the view
         sourceView.draw(canvas)
+    }
+    
+    override fun drawBackdrop(canvas: Canvas, width: Float, height: Float, glassViewX: Int, glassViewY: Int) {
+        // Get source view's global position
+        sourceView.getLocationOnScreen(sourcePosition)
+        
+        // Calculate offset
+        val offsetX = sourcePosition[0] - glassViewX
+        val offsetY = sourcePosition[1] - glassViewY
+        
+        // Draw with translation to align backdrop with glass view position
+        canvas.save()
+        canvas.translate(offsetX.toFloat(), offsetY.toFloat())
+        sourceView.draw(canvas)
+        canvas.restore()
     }
 }
 

@@ -86,6 +86,22 @@
             android:name=".activities.LazyScrollContainerActivity"
             android:exported="false"
             android:theme="@style/Theme.LiquidGlassXmlCatalog" />
+        
+        <!-- New demo activities with LayerBackdropView -->
+        <activity
+            android:name=".activities.ButtonsDemoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LiquidGlassXmlCatalog" />
+            
+        <activity
+            android:name=".activities.SliderDemoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LiquidGlassXmlCatalog" />
+            
+        <activity
+            android:name=".activities.ControlCenterDemoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LiquidGlassXmlCatalog" />
 
     </application>
 

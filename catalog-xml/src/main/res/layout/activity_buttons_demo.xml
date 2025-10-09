@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- LayerBackdropView captures background -->
+    <com.kyant.backdrop.xml.backdrop.LayerBackdropView
+        android:id="@+id/backdropLayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/backgroundImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/wallpaper_light" />
+
+    </com.kyant.backdrop.xml.backdrop.LayerBackdropView>
+
+    <!-- Scrollable content with liquid buttons -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingTop="48dp"
+            android:paddingBottom="24dp">
+
+            <!-- Header -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Liquid Glass Buttons"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:shadowColor="#80000000"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="4"
+                android:layout_marginBottom="48dp" />
+
+            <!-- Transparent Liquid Button -->
+            <com.kyant.backdrop.catalog.xml.components.LiquidButton
+                android:id="@+id/transparentButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Surface Liquid Button -->
+            <com.kyant.backdrop.catalog.xml.components.LiquidButton
+                android:id="@+id/surfaceButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Tinted Liquid Button (Blue) -->
+            <com.kyant.backdrop.catalog.xml.components.LiquidButton
+                android:id="@+id/tintedBlueButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Tinted Liquid Button (Orange) -->
+            <com.kyant.backdrop.catalog.xml.components.LiquidButton
+                android:id="@+id/tintedOrangeButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</FrameLayout>

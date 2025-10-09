@@ -8,6 +8,7 @@ import com.kyant.backdrop.xml.effects.*
 
 /**
  * Test activity to verify liquid glass effects are working with very obvious visual effects.
+ * Now uses LayerBackdropView for dynamic backdrop capture.
  */
 class LiquidTestActivity : AppCompatActivity() {
     
@@ -28,27 +29,27 @@ class LiquidTestActivity : AppCompatActivity() {
     }
     
     private fun setupLiquidGlassTests() {
-        // Get the wallpaper drawable as backdrop source
-        val backgroundDrawable = resources.getDrawable(com.kyant.backdrop.catalog.xml.R.drawable.wallpaper, theme)
+        // Get the LayerBackdropView and its backdrop
+        val backdrop = binding.backdropLayer.getBackdrop()
         
         // Test 1: Very strong refraction effect
-//        binding.strongRefractionContainer.setBackgroundSource(backgroundDrawable)
-//        binding.strongRefractionContainer.setCornerRadius(24f)
-//        binding.strongRefractionContainer.setRefractionEffect(RefractionEffect(
-//            height = 10f,      // Very high refraction
-//            amount = 50f,       // Strong distortion
-//            hasDepthEffect = false
-//        ))
+        binding.strongRefractionContainer.setBackgroundSource(backdrop)
+        binding.strongRefractionContainer.setCornerRadius(24f)
+        binding.strongRefractionContainer.setRefractionEffect(RefractionEffect(
+            height = 80f,       // Very high refraction
+            amount = 40f,       // Strong distortion
+            hasDepthEffect = true
+        ))
         
         // Test 2: Very strong blur effect
-        binding.strongBlurContainer.setBackgroundSource(backgroundDrawable)
+        binding.strongBlurContainer.setBackgroundSource(backdrop)
         binding.strongBlurContainer.setCornerRadius(24f)
         binding.strongBlurContainer.setBlurEffect(BlurEffect(
             radius = 50f        // Very strong blur
         ))
         
         // Test 3: Strong chromatic dispersion
-        binding.chromaticContainer.setBackgroundSource(backgroundDrawable)
+        binding.chromaticContainer.setBackgroundSource(backdrop)
         binding.chromaticContainer.setCornerRadius(24f)
         binding.chromaticContainer.setDispersionEffect(DispersionEffect(
             height = 80f,       // Very high dispersion

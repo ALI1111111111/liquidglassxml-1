@@ -70,8 +70,13 @@ object LiquidGlassPresets {
         return liquidGlassEffect()
             .cornerRadius(cornerRadius)
             .subtleBlur(4f)
+            .strongRefraction(12f)
             .subtleRefraction(4f)
             .ambientHighlight(0.05f)
+            .rainbowDispersion(10f)
+            .topLeftHighlight(3f)
+
+
     }
     
     /**

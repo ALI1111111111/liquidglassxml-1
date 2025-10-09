@@ -5,7 +5,9 @@ import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import com.kyant.backdrop.xml.effects.*
@@ -15,6 +17,10 @@ import com.kyant.backdrop.xml.shaders.RuntimeShaderCacheScopeImpl
 import com.kyant.backdrop.xml.presets.LiquidGlassPresets
 import com.kyant.backdrop.xml.backdrop.*
 import kotlin.math.*
+import androidx.core.graphics.toColorInt
+import androidx.core.graphics.withClip
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withTranslation
 
 /**
  * A custom View that provides liquid glass effects for XML layouts.
@@ -57,9 +63,22 @@ class LiquidGlassView @JvmOverloads constructor(
     private var backgroundView: View? = null
     private var xmlBackdrop: XmlBackdrop = EmptyXmlBackdrop
     
+    // Position tracking for dynamic backdrop updates
+    private val globalPosition = IntArray(2)
+    private var lastKnownX = 0
+    private var lastKnownY = 0
+    
+    // Layout listener for position changes
+    private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+        updatePositionAndBackdrop()
+    }
+    
     init {
         initFromAttributes(context, attrs)
         setWillNotDraw(false)
+        
+        // Register layout listener
+        viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
     }
     
     private fun initFromAttributes(context: Context, attrs: AttributeSet?) {
@@ -152,7 +171,8 @@ class LiquidGlassView @JvmOverloads constructor(
             typedArray.recycle()
         }
     }
-    
+
+
     private fun applyPreset(preset: Int) {
         val effectBuilder = when (preset) {
             1 -> LiquidGlassPresets.iosGlassButton(cornerRadiusTopLeft.coerceAtLeast(12f))
@@ -315,8 +335,41 @@ class LiquidGlassView @JvmOverloads constructor(
         // Create background bitmap for capturing content
         if (w > 0 && h > 0) {
             backgroundBitmap?.recycle()
-            backgroundBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            backgroundBitmap = createBitmap(w, h)
             backgroundCanvas = Canvas(backgroundBitmap!!)
+        }
+        
+        // Update position tracking
+        updatePositionAndBackdrop()
+    }
+    
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        
+        if (changed) {
+            // Position might have changed, update backdrop
+            updatePositionAndBackdrop()
+        }
+    }
+    
+    /**
+     * Updates global position tracking and refreshes backdrop if position changed
+     */
+    private fun updatePositionAndBackdrop() {
+        getLocationOnScreen(globalPosition)
+        
+        val currentX = globalPosition[0]
+        val currentY = globalPosition[1]
+        
+        // Check if position actually changed
+        if (currentX != lastKnownX || currentY != lastKnownY) {
+            lastKnownX = currentX
+            lastKnownY = currentY
+            
+            // Backdrop needs to be recaptured with new position
+            if (xmlBackdrop.isCoordinatesDependent) {
+                invalidate()
+            }
         }
     }
 
@@ -329,10 +382,10 @@ class LiquidGlassView @JvmOverloads constructor(
         // Capture background first
         captureBackgroundContent()
 
-        // 1️⃣ Draw shadow outside clipping region
+        //  Draw shadow outside clipping region
         drawShadowEffect(canvas, w, h)
 
-        // 2️⃣ Draw main glass inside rounded rect
+        // Draw main glass inside rounded rect
         val clipPath = createRoundedRectPath(w, h)
         canvas.save()
         canvas.clipPath(clipPath)
@@ -347,7 +400,9 @@ class LiquidGlassView @JvmOverloads constructor(
                 drawBasicGlassEffect(canvas, bgBitmap, w, h)
             }
         }
-        drawGlassEffect(canvas, w, h)
+
+
+//        drawGlassEffect(canvas, w, h)
         // Draw highlight effect
         drawHighlightEffect(canvas, width.toFloat(), height.toFloat())
         drawInnerShadowEffect(canvas, w, h)
@@ -357,7 +412,7 @@ class LiquidGlassView @JvmOverloads constructor(
     override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)
 
-        // 3️⃣ Draw highlights on top of children
+        //  Draw highlights on top of children
         val w = width.toFloat()
         val h = height.toFloat()
         drawHighlightEffect(canvas, w, h)
@@ -367,13 +422,22 @@ class LiquidGlassView @JvmOverloads constructor(
     private fun captureBackgroundContent() {
         val bgCanvas = backgroundCanvas ?: return
         val bgBitmap = backgroundBitmap ?: return
-        
+
         // Clear the background bitmap
         bgCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-        
-        // Draw background using XmlBackdrop
-        xmlBackdrop.drawBackdrop(bgCanvas, width.toFloat(), height.toFloat())
+
+        // Draw background using XmlBackdrop with coordinate information
+        if (xmlBackdrop.isCoordinatesDependent) {
+            // Update position before drawing
+            getLocationOnScreen(globalPosition)
+            xmlBackdrop.drawBackdrop(bgCanvas, width.toFloat(), height.toFloat(), globalPosition[0], globalPosition[1])
+        } else {
+            // Simple backdrop without coordinates
+            xmlBackdrop.drawBackdrop(bgCanvas, width.toFloat(), height.toFloat())
+        }
     }
+
+
 
     private fun drawShadowEffect(canvas: Canvas, width: Float, height: Float) {
         val shadow = shadowEffect ?: return
@@ -385,10 +449,9 @@ class LiquidGlassView @JvmOverloads constructor(
             maskFilter = BlurMaskFilter(shadow.radius, BlurMaskFilter.Blur.NORMAL)
         }
 
-        canvas.save()
-        canvas.translate(shadow.offsetX, shadow.offsetY)
-        canvas.drawPath(path, shadowPaint)
-        canvas.restore()
+        canvas.withTranslation(shadow.offsetX, shadow.offsetY) {
+            drawPath(path, shadowPaint)
+        }
     }
 
 
@@ -396,32 +459,38 @@ class LiquidGlassView @JvmOverloads constructor(
         val bgBitmap = backgroundBitmap ?: return
         val clipPath = createRoundedRectPath(width, height)
 
-        canvas.save()
-        canvas.clipPath(clipPath)
+        canvas.withClip(clipPath) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val refraction = refractionEffect
+                val shader = if (refraction != null && refraction.height > 0f) {
+                    val s = obtainRuntimeShader("Refraction", LiquidGlassShaders.REFRACTION_SHADER)
+                    s.setFloatUniform("size", width, height)
+                    s.setFloatUniform("cornerRadii", getCornerRadiiArray())
+                    s.setFloatUniform("refractionHeight", refraction.height)
+                    s.setFloatUniform("refractionAmount", refraction.amount)
+                    s.setFloatUniform("depthEffect", if (refraction.hasDepthEffect) 1f else 0f)
+                    s.setInputShader(
+                        "content",
+                        BitmapShader(bgBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+                    )
+                    Log.d("Refraction", "Based on height: ${refraction.height}, amount: ${refraction.amount}")
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val refraction = refractionEffect
-            val shader = if (refraction != null && refraction.height > 0f) {
-                val s = obtainRuntimeShader("Refraction", LiquidGlassShaders.REFRACTION_SHADER)
-                s.setFloatUniform("size", width, height)
-                s.setFloatUniform("cornerRadii", getCornerRadiiArray())
-                s.setFloatUniform("refractionHeight", refraction.height)
-                s.setFloatUniform("refractionAmount", -refraction.amount)
-                s.setFloatUniform("depthEffect", if(refraction.hasDepthEffect) 1f else 0f)
-                s.setInputShader("content", BitmapShader(bgBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP))
-                s
+                    s
+                } else {
+                    BitmapShader(bgBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+                }
+
+                paint.shader = shader
+                drawRect(0f, 0f, width, height, paint)
+
+
+
             } else {
-                BitmapShader(bgBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+                // fallback for older versions
+                drawBasicGlassEffect(this, bgBitmap, width, height)
             }
 
-            paint.shader = shader
-            canvas.drawRect(0f,0f,width,height,paint)
-        } else {
-            // fallback for older versions
-            drawBasicGlassEffect(canvas, bgBitmap, width, height)
         }
-
-        canvas.restore()
     }
 
     
@@ -437,10 +506,11 @@ class LiquidGlassView @JvmOverloads constructor(
             shader.setFloatUniform("size", width, height)
             shader.setFloatUniform("cornerRadii", getCornerRadiiArray())
             shader.setFloatUniform("refractionHeight", refraction.height)
-            shader.setFloatUniform("refractionAmount", -refraction.amount)
+            shader.setFloatUniform("refractionAmount", refraction.amount)
             shader.setFloatUniform("depthEffect", if (refraction.hasDepthEffect) 1f else 0f)
             shader.setInputShader("content", bitmapShader)
-            
+            Log.d("Advance", " Advance on height: ${refraction.height}, amount: ${refraction.amount}")
+
             refractionPaint.shader = shader
         } else {
             refractionPaint.shader = bitmapShader
@@ -513,7 +583,7 @@ class LiquidGlassView @JvmOverloads constructor(
         
         // Add a subtle tint to simulate glass effect
         paint.shader = null
-        paint.color = Color.parseColor("#1AFFFFFF") // Subtle white tint
+        paint.color = "#1AFFFFFF".toColorInt() // Subtle white tint
         canvas.drawRect(0f, 0f, width, height, paint)
     }
     
@@ -537,7 +607,7 @@ class LiquidGlassView @JvmOverloads constructor(
 
         // Solid color input shader for highlights
         val solidShader = BitmapShader(
-            Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply { setPixel(0,0,highlight.color) },
+            createBitmap(1, 1).apply { setPixel(0,0,highlight.color) },
             Shader.TileMode.CLAMP, Shader.TileMode.CLAMP
         )
         shader.setInputShader("content", solidShader)
@@ -546,10 +616,9 @@ class LiquidGlassView @JvmOverloads constructor(
         highlightPaint.alpha = (highlight.alpha * 255).toInt()
 
         val clipPath = createRoundedRectPath(width, height)
-        canvas.save()
-        canvas.clipPath(clipPath)
-        canvas.drawRect(0f,0f,width,height, highlightPaint)
-        canvas.restore()
+        canvas.withClip(clipPath) {
+            drawRect(0f, 0f, width, height, highlightPaint)
+        }
     }
 
 
@@ -580,10 +649,9 @@ class LiquidGlassView @JvmOverloads constructor(
         highlightPaint.shader = gradient
         
         val clipPath = createRoundedRectPath(width, height)
-        canvas.save()
-        canvas.clipPath(clipPath)
-        canvas.drawRect(0f, 0f, width, height, highlightPaint)
-        canvas.restore()
+        canvas.withClip(clipPath) {
+            drawRect(0f, 0f, width, height, highlightPaint)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -597,7 +665,7 @@ class LiquidGlassView @JvmOverloads constructor(
         shader.setFloatUniform("alpha", innerShadow.alpha)
 
         val baseShader = BitmapShader(
-            Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).apply {
+            createBitmap(1, 1).apply {
                 eraseColor(Color.TRANSPARENT)
             },
             Shader.TileMode.CLAMP, Shader.TileMode.CLAMP
@@ -609,10 +677,9 @@ class LiquidGlassView @JvmOverloads constructor(
         }
 
         val path = createRoundedRectPath(width, height)
-        canvas.save()
-        canvas.clipPath(path)
-        canvas.drawRect(0f, 0f, width, height, paint)
-        canvas.restore()
+        canvas.withClip(path) {
+            drawRect(0f, 0f, width, height, paint)
+        }
     }
 
 
@@ -641,7 +708,8 @@ class LiquidGlassView @JvmOverloads constructor(
     
     private fun updateBlurEffect() {
         val blur = blurEffect
-        if (blur != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        // BlurMaskFilter requires radius > 0, otherwise it throws IllegalArgumentException
+        if (blur != null && blur.radius > 0f && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             paint.maskFilter = BlurMaskFilter(blur.radius, 
                 when (blur.style) {
                     BlurEffect.BlurStyle.NORMAL -> BlurMaskFilter.Blur.NORMAL
@@ -666,6 +734,9 @@ class LiquidGlassView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         
+        // Unregister layout listener
+        viewTreeObserver.removeOnGlobalLayoutListener(layoutListener)
+        
         // Clean up resources
         backgroundBitmap?.recycle()
         backgroundBitmap = null
@@ -673,9 +744,6 @@ class LiquidGlassView @JvmOverloads constructor(
         
         // Clear shader cache
         (this as RuntimeShaderCacheScope).let { scope ->
-            if (scope is RuntimeShaderCacheScopeImpl) {
-                scope.clearCache()
-            }
         }
     }
     
@@ -721,5 +789,10 @@ class LiquidGlassView @JvmOverloads constructor(
             )
         )
         return ColorMatrixColorFilter(colorMatrix)
+    }
+    fun setGlassPreset(preset: Int) {
+        // Apply preset programmatically
+        applyPreset(preset)
+        invalidate() // Force redraw
     }
 }

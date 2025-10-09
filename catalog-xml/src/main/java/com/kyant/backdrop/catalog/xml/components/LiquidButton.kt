@@ -25,7 +25,7 @@ class LiquidButton @JvmOverloads constructor(
     private val liquidGlassContainer: LiquidGlassContainer = LiquidGlassContainer(context)
 
     // TextView in center
-    private val buttonText: TextView = TextView(context).apply {
+    internal val buttonText: TextView = TextView(context).apply {
         textSize = 15f
         setTextColor(Color.WHITE)
         gravity = Gravity.CENTER
@@ -79,6 +79,20 @@ class LiquidButton @JvmOverloads constructor(
         }
 
     private var onClickListener: OnClickListener? = null
+    
+    /**
+     * Sets the backdrop source for the liquid glass effect
+     */
+    fun setBackdropSource(backdrop: com.kyant.backdrop.xml.backdrop.XmlBackdrop) {
+        liquidGlassContainer.setBackgroundSource(backdrop)
+    }
+    
+    /**
+     * Sets the backdrop source from a LayerBackdropView
+     */
+    fun setBackdropSource(backdropView: com.kyant.backdrop.xml.backdrop.LayerBackdropView) {
+        liquidGlassContainer.setBackgroundSource(backdropView.getBackdrop())
+    }
 
     init {
 

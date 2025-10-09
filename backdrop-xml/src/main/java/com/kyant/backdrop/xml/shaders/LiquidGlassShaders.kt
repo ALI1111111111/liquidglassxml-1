@@ -66,16 +66,18 @@ half4 main(float2 coord) {
     float2 halfSize = size * 0.5;
     float2 centeredCoord = coord - halfSize;
     float sd = sdRoundedRectangle(centeredCoord, halfSize, cornerRadii);
-    if (-sd >= refractionHeight) {
-        return content.eval(coord);
-    }
+//    if (-sd >= refractionHeight) {
+//        return content.eval(coord);
+//    }
     sd = min(sd, 0.0);
     
     float4 maxGradRadius = float4(min(halfSize.x, halfSize.y));
     float4 gradRadius = min(cornerRadii * 1.5, maxGradRadius);
     float2 normal = gradSdRoundedRectangle(centeredCoord, halfSize, gradRadius);
     
-    float refractedDistance = circleMap(1.0 - -sd / refractionHeight) * refractionAmount;
+float refractedDistance = (1.0 - -sd / refractionHeight) * refractionAmount * 3.0;
+
+
     float2 refractedDirection = normalize(normal + depthEffect * normalize(centeredCoord));
     float2 refractedCoord = coord + refractedDistance * refractedDirection;
     

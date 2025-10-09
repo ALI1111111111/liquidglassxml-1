@@ -1,189 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<com.kyant.backdrop.catalog.xml.components.LayerBackdropView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/rootLayout"
+    android:id="@+id/backdropView"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/wallpaper">
+    android:layout_height="match_parent">
 
-    <ScrollView android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
-            <TextView android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Button Styles"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="8dp" />
-            <TextView android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Various button styles with liquid glass effects"
-                android:textSize="16sp"
-                android:textColor="@android:color/white"
-                android:alpha="0.8"
-                android:layout_marginBottom="32dp" />
-            <!-- Primary Button -->
-            <TextView android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Primary Button"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="12dp" />
-            <com.kyant.backdrop.xml.views.LiquidGlassContainer
-                android:id="@+id/primaryGlassContainer"
-                android:layout_width="353dp"
-                android:layout_height="58dp"
-                android:layout_marginBottom="24dp"
-                app:blurRadius="2dp"
-                app:cornerRadius="28dp"
-                app:highlightAlpha="0.15"
-                app:highlightAngle="45"
-                app:refractionAmount="24dp"
-                app:refractionDepthEffect="true"
-                app:refractionHeight="12dp"
-                app:shadowAlpha="0.2"
-                app:shadowOffsetY="2dp"
-                app:shadowRadius="4dp">
-                <Button
-                    android:id="@+id/primaryButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent"
-                    android:padding="16dp"
-                    android:text="Primary Action"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:background="@drawable/system_home_screen_light"
+    android:layout_height="match_parent">
 
-            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
-            <!-- Secondary Button -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Secondary Button"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="12dp" />
-            <com.kyant.backdrop.xml.views.LiquidGlassContainer
-                android:id="@+id/secondaryGlassContainer"
-                android:layout_width="353dp"
-                android:layout_height="58dp"
-                android:layout_marginBottom="24dp"
-                app:cornerRadius="28dp"
-                app:blurRadius="2dp"
-                app:refractionHeight="12dp"
-                app:refractionAmount="24dp"
-                app:refractionDepthEffect="true"
-                app:highlightAngle="45"
-                app:highlightAlpha="0.2"
-                app:shadowRadius="4dp"
-                app:shadowOffsetY="2dp"
-                app:shadowAlpha="0.15">
-                <Button
-                    android:id="@+id/secondaryButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:text="Secondary Action"
-                    android:textSize="16sp"
-                    android:textColor="@android:color/white"
-                    android:background="@android:color/transparent"
-                    android:padding="16dp" />
-            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
-            <!-- Accent Button -->
-            <TextView android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Accent Button"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="12dp" />
-            <com.kyant.backdrop.xml.views.LiquidGlassContainer
-                android:id="@+id/accentGlassContainer"
-                android:layout_width="353dp"
-                android:layout_height="58dp"
-                android:layout_marginBottom="24dp"
-                app:cornerRadius="28dp"
-                app:blurRadius="2dp"
-                app:refractionHeight="12dp"
-                app:refractionAmount="24dp"
-                app:refractionDepthEffect="true"
-                app:highlightAngle="45"
-                app:highlightAlpha="0.25"
-                app:shadowRadius="4dp"
-                app:shadowOffsetY="2dp"
-                app:shadowAlpha="0.2">
-                <Button
-                    android:id="@+id/accentButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:text="Accent Action"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/white"
-                    android:background="@android:color/transparent"
-                    android:padding="16dp" />
-            </com.kyant.backdrop.xml.views.LiquidGlassContainer>
-            <!-- Icon Button -->
-            <TextView android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Icon Button"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="12dp" />
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginBottom="24dp">
-                <com.kyant.backdrop.xml.views.LiquidGlassContainer
-                    android:id="@+id/iconGlassContainer"
-                    android:layout_width="353dp"
-                    android:layout_height="58dp"
-                    app:cornerRadius="32dp"
-                    app:blurRadius="12dp"
-                    app:refractionHeight="10dp"
-                    app:refractionAmount="18dp"
-                    app:refractionDepthEffect="true"
-                    app:highlightAngle="45"
-                    app:highlightAlpha="0.4"
-                    app:shadowRadius="8dp"
-                    app:shadowOffsetY="3dp"
-                    app:shadowAlpha="0.25">
-
-                    <ImageButton
-                        android:id="@+id/iconButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:src="@android:drawable/ic_menu_add"
-                        android:background="@android:color/transparent"
-                        android:contentDescription="Add item"
-                        android:scaleType="center"
-                        app:tint="@android:color/white" />
-                </com.kyant.backdrop.xml.views.LiquidGlassContainer>
-            </LinearLayout>
-        </LinearLayout>
-    </ScrollView>
-    <!-- Floating Action Button for Background Picker -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabBackgroundPicker"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_menu_gallery"
-        android:contentDescription="Change Background"
-        app:tint="@android:color/white"
-        app:backgroundTint="#80FFFFFF"
-        app:borderWidth="0dp"
-        app:elevation="8dp" />
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_marginTop="30dp"
+        android:gravity="center_horizontal">
+
+
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:id="@+id/liquidGlassView"
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            android:layout_gravity="center"
+            app:blurRadius="24dp"
+            app:cornerRadius="40dp"
+            app:glassPreset="none"
+            app:highlightAlpha="0.4"
+            app:highlightAngle="2.5"
+            app:highlightFalloff="0.4"
+            app:refractionAmount="80dp"
+            app:refractionHeight="40dp"
+            app:refractionDepthEffect="true"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="iosButton"
+            app:cornerRadius="16dp"
+            app:blurRadius="20dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="materialCard"
+            app:cornerRadius="24dp"
+            app:blurRadius="24dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="frostedOverlay"
+            app:cornerRadius="20dp"
+            app:blurRadius="18dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="chromaticGlass"
+            app:cornerRadius="24dp"
+            app:blurRadius="20dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="subtlePanel"
+            app:cornerRadius="16dp"
+            app:blurRadius="16dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="gamingGlass"
+            app:cornerRadius="20dp"
+            app:blurRadius="22dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="minimalist"
+            app:cornerRadius="12dp"
+            app:blurRadius="16dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="heavyGlass"
+            app:cornerRadius="28dp"
+            app:blurRadius="28dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="notificationPanel"
+            app:cornerRadius="20dp"
+            app:blurRadius="20dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="pressedButton"
+            app:cornerRadius="16dp"
+            app:blurRadius="18dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="navigationBar"
+            app:cornerRadius="0dp"
+            app:blurRadius="20dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            app:glassPreset="fab"
+            app:cornerRadius="28dp"
+            app:blurRadius="16dp"
+            android:layout_marginBottom="16dp"/>
+
+
+        <com.kyant.backdrop.xml.views.LiquidGlassView
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            app:glassPreset="dialogBackdrop"
+            app:cornerRadius="24dp"
+            app:blurRadius="22dp"
+            android:layout_marginBottom="16dp"/>
+
+    </LinearLayout>
+
+</ScrollView>
+</com.kyant.backdrop.catalog.xml.components.LayerBackdropView>
