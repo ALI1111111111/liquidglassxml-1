@@ -17,4 +17,18 @@
     <color name="demo_surface">#FFFFFF</color>
     <color name="demo_text">#212121</color>
     <color name="demo_text_secondary">#757575</color>
+    
+    <!-- Control Center colors (matching Compose version) -->
+    <!-- Light theme accent: Color(0xFF0088FF) -->
+    <color name="control_center_accent_light">#0088FF</color>
+    <!-- Dark theme accent: Color(0xFF0091FF) -->
+    <color name="control_center_accent_dark">#0091FF</color>
+    <!-- Container color: Color.Black.copy(0.05f) = 5% black -->
+    <color name="control_center_container">#0D000000</color>
+    <!-- Dim color: Color.Black.copy(0.4f) = 40% black -->
+    <color name="control_center_dim">#66000000</color>
+    <!-- Inactive button: Color.White.copy(0.2f) = 20% white -->
+    <color name="control_center_inactive">#33FFFFFF</color>
+    <!-- Stroke: White 20% alpha -->
+    <color name="control_center_stroke">#33FFFFFF</color>
 </resources>

@@ -22,6 +22,8 @@ import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
 import com.kyant.backdrop.catalog.xml.databinding.ActivityControlCenterDemoBinding
 import com.kyant.backdrop.xml.effects.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 /**
@@ -69,7 +71,7 @@ class ControlCenterDemoActivity : AppCompatActivity() {
         setupDragGesture()
 
         // Initial enter animation
-        animateEnter()
+//        animateEnter()
     }
 
     private fun setupToolbar() {
@@ -115,17 +117,18 @@ class ControlCenterDemoActivity : AppCompatActivity() {
         val backdrop = binding.backdropLayer.getBackdrop()
         val density = resources.displayMetrics.density
 
-        // Glass effect matching Compose: vibrancy() + refraction(24dp * progress, 48dp * progress, true)
-        // Vibrancy is now DEFAULT in the library (saturation 1.5x)
-        // Initial setup with progress = 1.0 (fully visible)
-
+        // Glass effect matching ControlCenterActivity design
         // Item size from Compose: 68dp, corner radius = 34dp (half)
         val cornerRadius = 34f * density
 
-        // Surface color from Compose: Color.Black.copy(0.05f) = Black 5% alpha
-        val surfaceColor = Color.argb(13, 0, 0, 0)
+        // Compose colors (matching ControlCenterActivity):
+        // - containerColor = Color.Black.copy(0.05f) = Black 5% alpha
+        // - White stroke with 20% alpha for subtle border
+        val containerColor = Color.argb(13, 0, 0, 0) // 5% black
+        val strokeColor = Color.argb(51, 255, 255, 255) // 20% white
+        val strokeWidth = (2f * density).toInt() // 2dp stroke
 
-        // Apply effects to all glass cards using new library API
+        // Apply effects to all glass cards using ControlCenterActivity styling
         listOf(
             binding.gridCard,
             binding.displayCard,
@@ -141,25 +144,27 @@ class ControlCenterDemoActivity : AppCompatActivity() {
             // Corner radius (capsule shape for items)
             card.setCornerRadius(cornerRadius)
 
-            // Refraction effect - matching Compose refraction(24dp * progress, 48dp * progress, true)
-            // With progress = 1.0 (fully visible)
+            // Refraction effect - matching Compose refraction(24dp, 48dp, true)
             card.setRefractionEffect(RefractionEffect(
                 height = 24f * density,
                 amount = 48f * density,
                 hasDepthEffect = true
             ))
 
-            // NO blur on glass tiles - Compose only has blur on backdrop layer (4dp), not on glass
-            // The backdrop blur is already applied via backdropLayer.setBackdropBlur()
 
-            // Highlight effect - matching Compose highlight with 30% alpha for prominence
-            card.setHighlightEffect(HighlightEffect.ambient(alpha = 0.3f))
+            // Highlight effect - matching ControlCenterActivity (topLeft with 30% alpha)
+            card.setHighlightEffect(HighlightEffect.topLeft( falloff = 2f))
+            card.setColorFilterEffect(ColorFilterEffect.highContrast())
+            // Vibrancy is already applied by DEFAULT in the library
+            // NO additional blur on glass tiles - Compose only has blur on backdrop layer
 
-            // NO surface tint - let glass be fully transparent to show backdrop
-            // Compose version doesn't use onDrawSurface, relies on pure glass effect
-
-            // Vibrancy is already applied by DEFAULT in the library!
-            // No need to call setColorFilterEffect(ColorFilterEffect.vibrant())
+            // Apply background with stroke and surface tint (matching ControlCenterActivity)
+            card.background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                setCornerRadius(cornerRadius)
+                setStroke(strokeWidth, strokeColor) // Subtle white stroke (2dp, 20% alpha)
+                setColor(containerColor) // Black 5% surface tint
+            }
         }
 
         // Setup button clicks
@@ -171,42 +176,20 @@ class ControlCenterDemoActivity : AppCompatActivity() {
         binding.wifiButton.setOnClickListener {
             Toast.makeText(this, "WiFi toggled", Toast.LENGTH_SHORT).show()
         }
-        binding.wifiButton.setOnTouchListener { view, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    // Force backdrop update during button press for real-time glass effects
-                    binding.backdropLayer.invalidateLayer()
-                }
-            }
-            false // Let click listener handle the click
-        }
+        // REMOVED: Excessive touch listener that called invalidateLayer() on every touch event
+        // The backdrop updates automatically via pre-draw listener when content changes
 
         // Bluetooth Button - with touch feedback
         binding.bluetoothButton.setOnClickListener {
             Toast.makeText(this, "Bluetooth toggled", Toast.LENGTH_SHORT).show()
         }
-        binding.bluetoothButton.setOnTouchListener { view, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    binding.backdropLayer.invalidateLayer()
-                }
-            }
-            false
-        }
+        // REMOVED: Excessive touch listener
 
-        // Airplane Button - with touch feedback
+        // Airplane Button - opens image picker
         binding.airplaneButton.setOnClickListener {
-            // Open image picker when airplane button is clicked
             openImagePicker()
         }
-        binding.airplaneButton.setOnTouchListener { view, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    binding.backdropLayer.invalidateLayer()
-                }
-            }
-            false
-        }
+        // REMOVED: Excessive touch listener
     }
 
     private fun setupDragGesture() {
@@ -230,7 +213,7 @@ class ControlCenterDemoActivity : AppCompatActivity() {
                 panelAlpha = (1f - abs(progress)).coerceIn(0f, 1f)
 
                 updatePanelState()
-                updateBackgroundBlur(panelAlpha)
+//                updateBackgroundBlur(panelAlpha)
 
                 return true
             }
@@ -282,52 +265,64 @@ class ControlCenterDemoActivity : AppCompatActivity() {
     }
 
     private fun updatePanelState() {
-        val density = resources.displayMetrics.density
+        // Offload calculations to a background coroutine and apply UI updates on the main thread.
+        // Note: arbitrary Kotlin work cannot be forced onto the GPU. Heavy calculations run on a background thread here.
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
+            val density = resources.displayMetrics.density
+            val panelTranslation = panelTranslationY
+            val panelAlphaLocal = panelAlpha
 
-        binding.controlPanel.apply {
-            translationY = panelTranslationY
-            alpha = panelAlpha
+            // Compute transforms off the UI thread
+            val progress = kotlin.math.abs(panelTranslation / maxDragHeight).coerceIn(0f, 1f)
+            val scaleXVal = 1f - (0.1f * progress)
+            val scaleYVal = 1f + (0.1f * progress)
 
-            // Scale effect when dragging - matching Compose glassLayer
-            val progress = abs(panelTranslationY / maxDragHeight).coerceIn(0f, 1f)
-            scaleX = 1f - (0.1f * progress)
-            scaleY = 1f + (0.1f * progress)
+            // Refraction params computed off-thread
+            val safeProgress = panelAlphaLocal
+            val refractionHeight = 24f * density * safeProgress
+            val refractionAmount = 48f * density * safeProgress
+
+            // Apply UI changes on the main thread
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                binding.controlPanel.apply {
+                    translationY = panelTranslation
+                    alpha = panelAlphaLocal
+                    scaleX = scaleXVal
+                    scaleY = scaleYVal
+                }
+
+                val cards = listOf(
+                    binding.gridCard,
+                    binding.displayCard,
+                    binding.smallCard1,
+                    binding.smallCard2,
+                    binding.wideCard,
+                    binding.tallCard,
+                    binding.tallCard2
+                )
+
+                cards.forEach { card ->
+                    card.setRefractionEffect(RefractionEffect(
+                        height = refractionHeight,
+                        amount = refractionAmount,
+                        hasDepthEffect = true
+                    ))
+                    card.setColorFilterEffect(ColorFilterEffect.highContrast())
+
+                    card.postInvalidateOnAnimation()
+                }
+
+                // Update backdrop on main thread
+                binding.backdropLayer.invalidateLayer()
+            }
         }
-
-        // Update glass card refraction effects dynamically during animation
-        // Matching Compose: refraction(24dp * safeProgress, 48dp * safeProgress, true)
-        val safeProgress = panelAlpha // Alpha goes 1.0 (visible) -> 0.0 (hidden)
-
-        listOf(
-            binding.gridCard,
-            binding.displayCard,
-            binding.smallCard1,
-            binding.smallCard2,
-            binding.wideCard,
-            binding.tallCard,
-            binding.tallCard2
-        ).forEach { card ->
-            // Animate refraction: full effect when visible, reduced when dragging away
-            card.setRefractionEffect(RefractionEffect(
-                height = 24f * density * safeProgress,
-                amount = 48f * density * safeProgress,
-                hasDepthEffect = true
-            ))
-
-            // Request re-render with updated effects
-            card.postInvalidateOnAnimation()
-        }
-
-        // CRITICAL: Force backdrop layer to update during animation
-        // This ensures glass effects capture the moving backdrop in real-time
-        binding.backdropLayer.invalidateLayer()
     }
 
     private fun updateBackgroundBlur(alpha: Float) {
         // Apply blur and dim DIRECTLY to LayerBackdropView (matching Compose architecture)
-        // Compose: Image.layerBackdrop(backdrop).then(modifier.graphicsLayer { renderEffect = BlurEffect(...) })
+        // Compose: Image.layerBackdrop(backdrop).then(modifier.graphicsLayer { renderEffect = BlurEffect(4.dp) })
         // The blur is applied to the captured layer, so glass cards read BLURRED backdrop
-        val blurRadius = 0f * resources.displayMetrics.density * alpha // Compose uses blur(4.dp)
+        val blurRadius = 4f * resources.displayMetrics.density * alpha // Compose uses blur(4.dp)
         val dimAlpha = 0.4f * alpha // dimColor = Color.Black.copy(0.4f) in Compose
 
         binding.backdropLayer.setBackdropBlur(blurRadius, dimAlpha)
@@ -352,7 +347,7 @@ class ControlCenterDemoActivity : AppCompatActivity() {
             }
             addUpdateListener { _, value, _ ->
                 panelTranslationY = value
-                // Update backdrop and effects during spring animation
+                // Update backdrop in real-time during spring animation
                 binding.backdropLayer.invalidateLayer()
             }
             start()

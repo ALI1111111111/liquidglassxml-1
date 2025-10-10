@@ -36,33 +36,34 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun createCatalogItems(): List<CatalogItem> {
+        supportActionBar?.hide()
         return listOf(
             // Testing section
             CatalogItem.Header("Testing"),
-            CatalogItem.Demo("Liquid Test", "Test liquid glass effects visibility with LayerBackdrop"),
+//            CatalogItem.Demo("Liquid Test", "Test liquid glass effects visibility with LayerBackdrop"),
             
             // Liquid glass components section
             CatalogItem.Header("Liquid glass components"),
-            CatalogItem.Demo("Buttons Demo", "New liquid glass buttons with LayerBackdrop"),
+//            CatalogItem.Demo("Buttons Demo", "New liquid glass buttons with LayerBackdrop"),
             CatalogItem.Demo("Slider Demo", "New liquid glass sliders with LayerBackdrop"),
             CatalogItem.Demo("Control Center Demo", "iOS-style control center with LayerBackdrop"),
-            CatalogItem.Demo("Buttons (Old)", "Original liquid glass buttons"),
-            CatalogItem.Demo("Slider (Old)", "Original liquid glass sliders"),
-            CatalogItem.Demo("Bottom tabs", "Glass bottom tab bar with selection"),
+//            CatalogItem.Demo("Buttons (Old)", "Original liquid glass buttons"),
+//            CatalogItem.Demo("Slider (Old)", "Original liquid glass sliders"),
+//            CatalogItem.Demo("Bottom tabs", "Glass bottom tab bar with selection"),
 //            CatalogItem.Demo("Dialog", "Glass dialog with backdrop effects"),
             
             // System UIs section
-            CatalogItem.Header("System UIs"),
-            CatalogItem.Demo("Lock screen", "iOS-style lock screen with glass elements"),
+//            CatalogItem.Header("System UIs"),
+//            CatalogItem.Demo("Lock screen", "iOS-style lock screen with glass elements"),
             CatalogItem.Demo("Control center", "Glass control center interface"),
 //            CatalogItem.Demo("Magnifier", "Draggable magnifier with glass effects"),
             
             // Experiments section
-            CatalogItem.Header("Experiments"),
-            CatalogItem.Demo("Glass playground", "Interactive playground to test effects"),
-            CatalogItem.Demo("Adaptive luminance glass", "Glass that adapts to background brightness"),
+//            CatalogItem.Header("Experiments"),
+//            CatalogItem.Demo("Glass playground", "Interactive playground to test effects"),
+//            CatalogItem.Demo("Adaptive luminance glass", "Glass that adapts to background brightness"),
 //            CatalogItem.Demo("Scroll container", "Scrollable content with glass backgrounds"),
-            CatalogItem.Demo("Lazy scroll container", "RecyclerView with glass items")
+//            CatalogItem.Demo("Lazy scroll container", "RecyclerView with glass items")
         )
     }
     

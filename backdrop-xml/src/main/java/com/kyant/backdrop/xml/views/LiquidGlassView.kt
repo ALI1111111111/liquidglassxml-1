@@ -398,8 +398,9 @@ class LiquidGlassView @JvmOverloads constructor(
     
     override fun invalidate() {
         super.invalidate()
-        // Also invalidate the backdrop layer to ensure fresh content
-        if (xmlBackdrop is LayerXmlBackdrop) {
+        // OPTIMIZED: Only invalidate backdrop layer if it exists AND we're not in a draw pass
+        // This prevents expensive recursive invalidations
+        if (!isInLayout && xmlBackdrop is LayerXmlBackdrop) {
             val layerBackdrop = xmlBackdrop as LayerXmlBackdrop
             layerBackdrop.getLayerView().invalidateLayer()
         }
@@ -407,11 +408,17 @@ class LiquidGlassView @JvmOverloads constructor(
     
     override fun postInvalidate() {
         super.postInvalidate()
-        // Also invalidate the backdrop layer to ensure fresh content
-        if (xmlBackdrop is LayerXmlBackdrop) {
+        // OPTIMIZED: Use postInvalidateOnAnimation for smooth 60fps updates
+        // Only invalidate backdrop if needed
+        if (!isInLayout && xmlBackdrop is LayerXmlBackdrop) {
             val layerBackdrop = xmlBackdrop as LayerXmlBackdrop
             layerBackdrop.getLayerView().invalidateLayer()
         }
+    }
+    
+    override fun postInvalidateOnAnimation() {
+        super.postInvalidateOnAnimation()
+        // No backdrop invalidation here - let it update via its own pre-draw listener
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)

@@ -216,10 +216,10 @@ class ControlCenterActivity : AppCompatActivity() {
         val density = resources.displayMetrics.density
 
         // Apply blur and dim DIRECTLY to LayerBackdropView (matching Compose architecture)
-        // Compose: Image.layerBackdrop().then(modifier.graphicsLayer { renderEffect = blur })
+        // Compose: Image.layerBackdrop().then(modifier.graphicsLayer { renderEffect = blur(4.dp) })
         // The blur is applied to the captured layer, so glass cards read BLURRED backdrop
-        val blurRadius = 0f * density * progress // TESTING: Set to 0 to disable blur
-        val dimAlpha = 0.4f * progress
+        val blurRadius = 4f * density * progress // Compose uses 4.dp blur
+        val dimAlpha = 0.4f * progress // dimColor = Color.Black.copy(0.4f) in Compose
         backdropLayer.setBackdropBlur(blurRadius, dimAlpha)
 
         // Update tiles with proper Compose-matching values
@@ -261,22 +261,28 @@ class ControlCenterActivity : AppCompatActivity() {
         hasIcons: Boolean
     ): LiquidGlassContainer {
         val density = resources.displayMetrics.density
-        val strokeWidth = (4f * density).toInt() // Thicker 4dp stroke
+        val strokeWidth = (2f * density).toInt() // Compose-matching stroke: 2dp
+        
+        // Compose colors:
+        // - containerColor = Color.Black.copy(0.05f) = Black 5% alpha
+        // - White stroke with 20% alpha for subtle border
+        val containerColor = Color.argb(13, 0, 0, 0) // 5% black
+        val strokeColor = Color.argb(51, 255, 255, 255) // 20% white
 
         return LiquidGlassContainer(this).apply {
             layoutParams = LinearLayout.LayoutParams(width, height)
             setCornerRadius(cornerRadius)
 
-
             setBackgroundSource(backdropLayer)
 
 
             setRefractionEffect(RefractionEffect(24f * density, 48f * density, true))
-             setHighlightEffect(HighlightEffect.topLeft(falloff = 2f)) // Uses default alpha = 0.3f
+//             setHighlightEffect(HighlightEffect.topLeft(falloff = 2f)) // Uses default alpha = 0.3f
             // setBlurEffect(BlurEffect(20f * density)) // Subtle internal blur for realism
 
-            setColorFilterEffect(ColorFilterEffect.vibrant()) // Vibrant color pop
+//            setColorFilterEffect(ColorFilterEffect.vibrant()) // Vibrant color pop
             setColorFilterEffect(ColorFilterEffect.highContrast()) // Better edge separation
+
 
 //
 //            setDispersionEffect(DispersionEffect(height = 8f * density, amount = 12f * density))
@@ -286,8 +292,8 @@ class ControlCenterActivity : AppCompatActivity() {
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 setCornerRadius(cornerRadius)
-                setStroke(strokeWidth, Color.argb(255, 255, 255, 255)) // Fully bright white
-                setColor(Color.WHITE)
+                setStroke(strokeWidth, strokeColor) // Subtle white stroke
+                setColor(containerColor) // Black 5% surface tint
             }
 
             // On-click scale animation (smooth press feedback)
