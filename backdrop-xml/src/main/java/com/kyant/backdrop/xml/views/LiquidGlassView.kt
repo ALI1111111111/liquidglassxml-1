@@ -442,6 +442,7 @@ class LiquidGlassView @JvmOverloads constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)
 
@@ -508,6 +509,7 @@ class LiquidGlassView @JvmOverloads constructor(
      * Main glass effect drawing - applies refraction shader and blur effect
      * Matches Compose drawBackdrop behavior without extra surface layers
      */
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun drawGlassEffect(canvas: Canvas, width: Float, height: Float) {
         val bgBitmap = backgroundBitmap ?: return
         

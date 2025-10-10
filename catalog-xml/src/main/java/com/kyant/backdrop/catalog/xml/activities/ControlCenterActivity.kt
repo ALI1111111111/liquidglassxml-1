@@ -1,17 +1,22 @@
 package com.kyant.backdrop.catalog.xml.activities
 
+import android.animation.TimeInterpolator
 import android.app.Activity
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewOutlineProvider
+import android.view.animation.OvershootInterpolator
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -19,13 +24,17 @@ import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.animation.DecelerateInterpolator
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.core.view.setPadding
 import com.kyant.backdrop.catalog.xml.R
+import com.kyant.backdrop.xml.ShadowEffect
 import com.kyant.backdrop.xml.backdrop.LayerBackdropView
 import com.kyant.backdrop.xml.effects.BlurEffect
 import com.kyant.backdrop.xml.effects.ColorFilterEffect
+import com.kyant.backdrop.xml.effects.DispersionEffect
+import com.kyant.backdrop.xml.effects.ExposureAdjustmentEffect
 import com.kyant.backdrop.xml.effects.HighlightEffect
 import com.kyant.backdrop.xml.effects.RefractionEffect
 import com.kyant.backdrop.xml.views.LiquidGlassContainer
@@ -70,7 +79,7 @@ class ControlCenterActivity : AppCompatActivity() {
 
         // Root layout
         val rootLayout = FrameLayout(this)
-        
+
         // LayerBackdropView - Blur will be applied HERE (matching Compose architecture)
         // Compose: Image.layerBackdrop(backdrop).then(modifier with blur)
         // XML: LayerBackdropView with setBackdropBlur()
@@ -80,7 +89,7 @@ class ControlCenterActivity : AppCompatActivity() {
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
         }
-        
+
         // Background image - will be blurred by LayerBackdropView
         backgroundImage = ImageView(this).apply {
             layoutParams = FrameLayout.LayoutParams(
@@ -91,7 +100,7 @@ class ControlCenterActivity : AppCompatActivity() {
             setImageResource(R.drawable.wallpaper_light)
         }
         backdropLayer.addView(backgroundImage)
-        
+
         // Restore wallpaper if saved
         val savedUriString = savedInstanceState?.getString("wallpaper_uri")
         if (savedUriString != null) {
@@ -205,14 +214,14 @@ class ControlCenterActivity : AppCompatActivity() {
 
     private fun updateTilesWithProgress(progress: Float) {
         val density = resources.displayMetrics.density
-        
+
         // Apply blur and dim DIRECTLY to LayerBackdropView (matching Compose architecture)
         // Compose: Image.layerBackdrop().then(modifier.graphicsLayer { renderEffect = blur })
         // The blur is applied to the captured layer, so glass cards read BLURRED backdrop
         val blurRadius = 0f * density * progress // TESTING: Set to 0 to disable blur
         val dimAlpha = 0.4f * progress
         backdropLayer.setBackdropBlur(blurRadius, dimAlpha)
-        
+
         // Update tiles with proper Compose-matching values
         tileViews.forEach { tile ->
             tile.alpha = progress
@@ -224,7 +233,7 @@ class ControlCenterActivity : AppCompatActivity() {
             val refractionAmount = 48f * density * progress
             tile.setRefractionEffect(RefractionEffect(refractionHeight, refractionAmount, true))
         }
-        
+
         // Invalidate backdrop layer for real-time updates
         backdropLayer.invalidateLayer()
     }
@@ -237,35 +246,70 @@ class ControlCenterActivity : AppCompatActivity() {
                 tile.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(250).start()
             }, (index * 80).toLong())
         }
-        
+
         // Apply initial blur and effects
-        handler.postDelayed({ 
+        handler.postDelayed({
             updateTilesWithProgress(1f)
         }, 0)
         progress = 1f
     }
 
-    private fun createGlassTile(width: Int, height: Int, cornerRadius: Float, hasIcons: Boolean): LiquidGlassContainer {
+    private fun createGlassTile(
+        width: Int,
+        height: Int,
+        cornerRadius: Float,
+        hasIcons: Boolean
+    ): LiquidGlassContainer {
         val density = resources.displayMetrics.density
+        val strokeWidth = (4f * density).toInt() // Thicker 4dp stroke
+
         return LiquidGlassContainer(this).apply {
             layoutParams = LinearLayout.LayoutParams(width, height)
             setCornerRadius(cornerRadius)
-            
-            // Use new API - set backdrop source from LayerBackdropView
+
+
             setBackgroundSource(backdropLayer)
-            
-            // NO surface tint - let glass be fully transparent to show backdrop
-            // Compose version doesn't use onDrawSurface, relies on pure glass effect
-            
-            // Effects matching Compose exactly:
-            // - Vibrancy (saturation 1.5x) is now default in library
-            // - Refraction: 24dp height, 48dp amount with depth effect
-            // - NO blur on glass tiles (Compose only has blur on backdrop layer, not on glass)
-            // - Highlight: top-left angle with 30% alpha (default) for prominence
+
+
             setRefractionEffect(RefractionEffect(24f * density, 48f * density, true))
-            setHighlightEffect(HighlightEffect.topLeft(falloff = 2f)) // Uses default alpha = 0.3f
+             setHighlightEffect(HighlightEffect.topLeft(falloff = 2f)) // Uses default alpha = 0.3f
+            // setBlurEffect(BlurEffect(20f * density)) // Subtle internal blur for realism
+
+            setColorFilterEffect(ColorFilterEffect.vibrant()) // Vibrant color pop
+            setColorFilterEffect(ColorFilterEffect.highContrast()) // Better edge separation
+
+//
+//            setDispersionEffect(DispersionEffect(height = 8f * density, amount = 12f * density))
+//            setExposureAdjustmentEffect(ExposureAdjustmentEffect(2f))
+
+
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                setCornerRadius(cornerRadius)
+                setStroke(strokeWidth, Color.argb(255, 255, 255, 255)) // Fully bright white
+                setColor(Color.WHITE)
+            }
+
+            // On-click scale animation (smooth press feedback)
+            setOnClickListener {
+                this.animate()
+                    .scaleX(0.95f)
+                    .scaleY(0.95f)
+                    .setDuration(50)
+                    .withEndAction {
+                        this.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(50)
+                            .withEndAction {
+                                // Force backdrop refresh to update refraction
+                                backdropLayer.invalidateLayer()
+                            }.start()
+                    }.start()
+            }
         }
     }
+
 
     private fun createSpacer(width: Int, height: Int): View =
         View(this).apply { layoutParams = LinearLayout.LayoutParams(width, height) }
@@ -280,14 +324,14 @@ class ControlCenterActivity : AppCompatActivity() {
         val inputStream = contentResolver.openInputStream(uri)
         val bitmap = BitmapFactory.decodeStream(inputStream)
         inputStream?.close()
-        
+
         if (bitmap != null) {
             val drawable = bitmap.toDrawable(resources)
-            
+
             // Set wallpaper to the LayerBackdropView
             // Blur will be applied by setBackdropBlur(), so glass cards read blurred version
             backgroundImage.setImageDrawable(drawable)
-            
+
             // Invalidate backdrop layer to update glass cards
             backdropLayer.invalidateLayer()
         }

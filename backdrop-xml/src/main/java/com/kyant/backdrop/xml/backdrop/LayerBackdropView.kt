@@ -13,6 +13,10 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.createBitmap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * A ViewGroup that captures its content to a bitmap layer that can be used as a backdrop.
@@ -91,8 +95,13 @@ class LayerBackdropView @JvmOverloads constructor(
      * Mark layer as dirty and request update
      */
     fun invalidateLayer() {
+        CoroutineScope(Dispatchers.IO).launch {
         isDirty = true
         postInvalidateOnAnimation()
+            withContext(Dispatchers.Main) {
+               postInvalidateOnAnimation()
+            }
+        }
     }
     
     /**
